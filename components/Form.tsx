@@ -81,7 +81,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
     let loginval=loggedIn;
     if (loggedIn) {
         setloading(false);
-        //dispatch(setlogin({ user: loggedIn.user, token: loggedIn.token }));
+        dispatch(setlogin({ user: loggedIn.user, token: loggedIn.token }));
        //console.log(loggedIn);
       //  navigation.reset({
       //   index: 0,
