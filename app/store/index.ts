@@ -8,6 +8,7 @@ import authReducer from './authSlice'; // Import your auth slice
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
+  blacklist: ['register'],
 };
 
 // Create a combined reducer (if you have more than one reducer)
@@ -21,6 +22,10 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 // Configure Store
 export const store = configureStore({
   reducer: persistedReducer, // Use the persisted reducer
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, // Disable the serializable check middleware
+    }),
 });
 
 // Persist Store

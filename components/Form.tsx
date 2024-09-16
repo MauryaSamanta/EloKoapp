@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootStackParamList } from '../types'; // Assuming you have types defined
 import CircularProgress from 'react-native-circular-progress';
 import { setlogin } from '../app/store/authSlice';
@@ -31,7 +31,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
   const [loading,setloading]=useState(false);
   const navigation = useNavigation<NavigationType>(); // Use navigation with types
   const dispatch = useDispatch();
-
+  
   const register = async () => {
     if (username === "" || pass === "" || email === "" || dob === "") return;
 
@@ -58,6 +58,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
   };
 
   const login = async () => {
+    //navigation.navigate('home');
     if (email === "" || pass === "") return;
     setloading(true);
     const values = { email, password: pass };
