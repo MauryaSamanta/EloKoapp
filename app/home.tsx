@@ -12,10 +12,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { Hub, HubsProps } from '../types';
 const colors = themeSettings("dark");
 const Tab = createBottomTabNavigator();
-const [mainhubs,setmainhubs]=useState<Hub[]>([]);
+//const [mainhubs,setmainhubs]=useState<Hub[]>([]);
 // "My Hubs" screen
 function MyHubsScreen() {
   const { _id } = useSelector((state: any) => state.auth.user);
+  const [mainhubs,setmainhubs]=useState<Hub[]>([]);
   return (
     <SafeAreaView style={styles.container}>
       <Navbar hub={true}/>

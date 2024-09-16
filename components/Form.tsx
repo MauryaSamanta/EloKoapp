@@ -61,6 +61,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
     if (email === "" || pass === "") return;
     setloading(true);
     const values = { email, password: pass };
+    try{
     const response = await fetch("https://surf-jtn5.onrender.com/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,16 +80,19 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
     let loginval=loggedIn;
     if (loggedIn) {
         setloading(false);
-        dispatch(setlogin({ user: loggedIn.user, token: loggedIn.token }));
+        //dispatch(setlogin({ user: loggedIn.user, token: loggedIn.token }));
        //console.log(loggedIn);
-       navigation.reset({
-        index: 0,
-        routes: [{ name: 'home' }], // Resets the stack and navigates to the home screen
-      });
+      //  navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'home' }], // Resets the stack and navigates to the home screen
+      // });
       navigation.navigate('home')
     }
     setEmail("");
-    setPass("");
+    setPass("");}
+    catch(error){
+
+    }
   };
 
   const handleFormSubmit = () => {

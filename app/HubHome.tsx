@@ -177,7 +177,7 @@ const fetchZones=async(selectedQube:Qube)=>{
        {selectedQube && ( <View style={styles.zonesplace}>
         <Text style={styles.heading}>Zones</Text>
         {zones?.map((zone:any)=>(
-          <TouchableOpacity style={styles.zone} onPress={()=>setSelectedZone(zone)}>
+          <TouchableOpacity style={styles.zone} onPress={()=>setSelectedZone(zone)} key={zone._id}>
           <Text style={styles.zonename}>{zone.name}</Text>
           </TouchableOpacity>
           ))}

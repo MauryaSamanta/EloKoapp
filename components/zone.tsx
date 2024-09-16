@@ -62,7 +62,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
 
           {/* Messages */}
           {messages?.map((message:Message, index) => (
-            <ChatItem message={message} isOwnMessage={message.sender_id===_id}/>
+            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id}/>
           ))}
         </View>
       </ScrollView>
