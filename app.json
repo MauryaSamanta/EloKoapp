@@ -20,16 +20,19 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.mauryax.client"
+      "package": "com.mauryax.client",
+      "permissions": [
+    "INTERNET",
+    "WRITE_EXTERNAL_STORAGE",
+    "READ_EXTERNAL_STORAGE"
+  ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      "expo-router"
-    ],
+    
     "experiments": {
       "typedRoutes": true
     },
