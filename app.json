@@ -17,8 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/EloKoMainLogo.png",
+        "backgroundColor": "#121212"
       },
       "package": "com.mauryax.client",
       "permissions": [

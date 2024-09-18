@@ -1,9 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { Message,Zone } from '@/types';
+import { Message,Qube,Zone } from '@/types';
 import MessageInputArea from './MessageInputArea';
 import { useSelector } from 'react-redux';
 import ChatItem from './ChatItem';
+import TagStoreDialog from '@/dialogs/TagStoreDialog';
+import { io } from 'socket.io-client';
+import MessageDrawer from '@/drawers/MessageDrawer';
+import MessageOptionsDialog from '@/dialogs/MessageOptionsDialog';
+import { Hub } from '@/types';
+//import MessageDrawer from '@/drawers/MessageDrawer';
+
 // // Define TypeScript interfaces for the props
 // interface Message {
 //   content: string;
@@ -11,17 +18,31 @@ import ChatItem from './ChatItem';
 
 interface ZoneScreenProps {
   selectedZone: Zone;
+  selectedQube?:Qube;
+  hubId?:string;
  // handleOpenStoreDialog: () => void;
   //messages?: Message[]; // Messages is optional, default is an empty array
 }
-
+const socket = io('https://surf-jtn5.onrender.com');
 const ZoneScreen: React.FC<ZoneScreenProps> = ({
   selectedZone,
+  selectedQube,
+  hubId
   //handleOpenStoreDialog,
   //messages = [],
 }) => {
     const {_id}=useSelector((state:any)=>state.auth.user);
   const [messages,setmessages]=useState<Message[]>([]);
+  const [tagdialog,settagdialog]=useState(false);
+  const [drawer,setdrawer]=useState(false);
+  const [chat,setchat]=useState<Message>();
+  //console.log(hubId);
+  const opentagdialog=()=>{
+    settagdialog(true);
+  }
+  const closettagdialog=()=>{
+    settagdialog(false);
+  }
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(()=>{
     const getmessages=async()=>{
@@ -35,25 +56,46 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
             
         }
     }
+    const joinZone=async()=>{
+      socket.emit('joinZone', selectedZone._id);
+    }
     getmessages();
+    joinZone();
   },[selectedZone]);
+
+  useEffect(()=>{
+    socket.on('receiveMessage', (message) => {
+      
+      setmessages((prevMessages) =>
+        message.file
+          ? prevMessages.map((msg) =>
+              msg.uuid === message.uuid ? message : msg
+          
+            )
+          : [...prevMessages, message]
+      );
+      //console.log(message);
+    });
+  },[])
 
   useEffect(() => {
     // Scroll to the bottom whenever messages change
     scrollViewRef.current?.scrollToEnd({ animated: false });
-  }, []);
+  }, [messages]);
   return (
     <View style={styles.container}>
       {/* Header Section */}
+     
       <View style={styles.header}>
         <Text style={styles.zoneName}>{selectedZone?.name}</Text>
 
-        <TouchableOpacity style={styles.storeButton} //onPress={handleOpenStoreDialog}
+        <TouchableOpacity style={styles.storeButton} onPress={opentagdialog}
         >
           <Text style={styles.storeButtonText}>#store</Text>
         </TouchableOpacity>
       </View>
-
+      <TagStoreDialog open={tagdialog} qubeid={selectedQube?._id} onClose={closettagdialog}/>
+      
       {/* Scrollable Area */}
       <ScrollView contentContainerStyle={styles.scrollArea}  ref={scrollViewRef}>
         <View style={styles.messageContainer}>
@@ -62,13 +104,17 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
 
           {/* Messages */}
           {messages?.map((message:Message, index) => (
-            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id}/>
+            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}/>
           ))}
         </View>
       </ScrollView>
+      
       <View >
-      <MessageInputArea/>
+      
+      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages}/>
+      {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={hubId}/>)}
       </View>
+      
     </View>
   );
 };

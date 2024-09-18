@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "components/MessageInputArea.jsx", "components/zone.jsx", "drawers/MessageDrawer.jsx", "drawers/MessageDrawer.jsx"  ]
 }

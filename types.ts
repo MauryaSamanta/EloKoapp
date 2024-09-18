@@ -66,6 +66,7 @@ export interface Message {
   tags?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  uuid?:string;
 }
 
 export interface Zone {

@@ -5,6 +5,9 @@ import { themeSettings } from '../constants/Colors';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import HubOverviewPage from '@/components/HubOverviewPage';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import {  NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types'; 
 import { Member } from '@/types';
 import { Qube } from '@/types';
 import HexagonWithText from '@/components/HexagonWithText';
@@ -22,7 +25,10 @@ type HubHomeRouteParams = {
 
 // Define the type for the route prop
 type HubHomeRouteProp = RouteProp<{ HubHome: HubHomeRouteParams }, 'HubHome'>;
-
+type NavigationType = NavigationProp<RootStackParamList>;
+type LibraryNavProp = {
+  navigate: (screen: string, params?: any) => void;
+};
 // Drawer width
 const statusBarHeight = StatusBar.currentHeight || 0;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -43,7 +49,10 @@ const HubHomeScreen: React.FC = () => {
   const [selectedQube,setselectedQube]=useState<Qube>();
   const [zones,setZones]=useState([]);
   const [selectedZone,setSelectedZone]=useState(null);
+  const [wall,setwall]=useState('');
+  const {_id}=useSelector((state:any)=>state.auth.user);
   const token=useSelector((state:any)=>state.auth.token);
+  const navigationlibrary = useNavigation<LibraryNavProp>();
   // Use the route hook to get params
   const route = useRoute<HubHomeRouteProp>();
   const { name, description, avatar_url, banner_url, demonym, hubId,ownerId } = route.params;
@@ -91,9 +100,23 @@ const HubHomeScreen: React.FC = () => {
         
       }
     }
+    const getwallpaper=async()=>{
+      try {
+        const response=await fetch(`https://surf-jtn5.onrender.com/wall/${_id}/${hubId}`,{
+          method:"GET"
+        });
+        const data=await response.json();
+        setwall(data[0].wall_url);
+        console.log(wall);
+        //console.log(wall);
+      } catch (error) {
+        
+      }
+    }
       fetchMembers();
       getowner();
       getqubes();
+      getwallpaper();
 },[])
 
 const fetchZones=async(selectedQube:Qube)=>{
@@ -106,7 +129,7 @@ const fetchZones=async(selectedQube:Qube)=>{
     })
     const data=await response.json();
     setZones(data.zones);
-    setSelectedZone(data.zones[0]);
+    //setSelectedZone(data.zones[0]);
     //joinZone(data.zones[0]._id);
     console.log(zones);
   } catch (error) {
@@ -177,7 +200,7 @@ const fetchZones=async(selectedQube:Qube)=>{
        {selectedQube && ( <View style={styles.zonesplace}>
         <Text style={styles.heading}>Zones</Text>
         {zones?.map((zone:any)=>(
-          <TouchableOpacity style={styles.zone} onPress={()=>setSelectedZone(zone)} key={zone._id}>
+          <TouchableOpacity style={styles.zone} onPress={()=>{setDrawerOpen(false);setSelectedZone(zone); }} key={zone._id}>
           <Text style={styles.zonename}>{zone.name}</Text>
           </TouchableOpacity>
           ))}
@@ -194,7 +217,10 @@ const fetchZones=async(selectedQube:Qube)=>{
           </TouchableOpacity>
 
           {/* Open Library Button (center) */}
-          <TouchableOpacity onPress={() => console.log('Open Library')} style={styles.libraryButton}>
+          <TouchableOpacity onPress={() => {
+            const data={hub:hubId, wallpaper:wall, hubname:name};
+            navigationlibrary.navigate("Library", data);
+          }} style={styles.libraryButton}>
             <Text style={{ color: 'white' }}>Open Library</Text>
           </TouchableOpacity>
 
@@ -207,7 +233,7 @@ const fetchZones=async(selectedQube:Qube)=>{
         <View style={styles.content}>
          {!selectedZone?( <HubOverviewPage name={name} description={description} avatar_url={avatar_url}
                            banner_url={banner_url} demonym={demonym} members={members} owner={owner}/>):(
-                            <ZoneScreen selectedZone={selectedZone}/>
+                            <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId}/>
                            )}
         </View>
       </View>

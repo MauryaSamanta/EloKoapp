@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import Svg, { ClipPath, Polygon, Rect, Defs, Image as SvgImage } from 'react-native-svg';
 import { Member } from '@/types';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -68,7 +68,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+       <TouchableWithoutFeedback onPress={onClose}>
+      <View style={styles.overlay} >
         <View style={styles.container}>
             <View style={styles.EloKo}>
         <Text style={styles.username}>EloKo Identity</Text>
@@ -93,6 +94,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           </View>
         </View>
       </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

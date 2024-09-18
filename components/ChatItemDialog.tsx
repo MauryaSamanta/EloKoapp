@@ -11,13 +11,13 @@ import MessageDrawer from '@/drawers/MessageDrawer';
 interface ChatItemProps {
   message: Message;
   isOwnMessage: boolean;
-  setdrawer:(x:boolean)=>void;
-  setchat(x:Message):void;
+ // setdrawer:(x:boolean)=>void
+  
 }
 
 const { width } = Dimensions.get('window');
 
-const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat }) => {
+const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
   const [user, setUser] = useState<Member>();
   const [showCard, setShowCard] = useState(false);
   const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt } = message;
@@ -70,7 +70,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
   }
   
   return (
-  <Pressable onLongPress={()=>{setdrawer(true); setchat(message);}} onPressIn={handlepressin} onPressOut={handlepressout}>
+ 
     <View style={{ flexDirection: isOwnMessage ? 'row-reverse' : 'row', marginBottom: 20, backgroundColor:bgcolor, borderRadius:20 }}>
       <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
         <View style={[styles.header, isOwnMessage && { justifyContent: 'flex-end' }]}>
@@ -138,8 +138,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
         </View>
       </View>
     </View>
-   
-    </Pressable>
+
   );
 };
 
@@ -200,4 +199,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatItem;
+export default ChatItemDialog;
