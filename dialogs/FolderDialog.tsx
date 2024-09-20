@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ImageBackground, TouchableWithoutFeedback } from 'react-native';
 import { FontAwesome, MaterialIcons, Entypo } from '@expo/vector-icons';
-import {BlurView} from 'react-native-blur';
+
 // Define the file interface
 interface File {
   _id: string;

@@ -11,7 +11,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import FolderDialog from '@/dialogs/FolderDialog';
 
 import { set } from 'date-fns';
-import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
+//import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 // Define the interface for the route params
 interface RouteParams {
   wallpaper: string | null;
@@ -225,8 +225,7 @@ const Library: React.FC = () => {
           
         )}
         {selectedfolder && (<FolderDialog file={selectedfolder} isVisible={folderdialog} onClose={handleclosedialog}/>)}
-        {selectedfile&&(<FilePreviewDialog file_name={selectedfile.file_name} file_url={selectedfile.file_url} isVisible={showfile}
-         onClose={()=>setselectedfile(undefined)}/>)}
+      
         </ScrollView>
       
     </ImageBackground>
