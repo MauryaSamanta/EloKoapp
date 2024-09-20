@@ -219,7 +219,7 @@ const fetchZones=async(selectedQube:Qube)=>{
           {/* Open Library Button (center) */}
           <TouchableOpacity onPress={() => {
             const data={hub:hubId, wallpaper:wall, hubname:name};
-            navigationlibrary.navigate("Library", data);
+            navigationlibrary.navigate("Library",data);
           }} style={styles.libraryButton}>
             <Text style={{ color: 'white' }}>Open Library</Text>
           </TouchableOpacity>
