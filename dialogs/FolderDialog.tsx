@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ImageBackground, TouchableWithoutFeedback } from 'react-native';
 import { FontAwesome, MaterialIcons, Entypo } from '@expo/vector-icons';
+import FilePreviewDialog from './FilePreviewDialog';
 
 // Define the file interface
 interface File {
   _id: string;
-  file_url: string;
-  file_name: string;
-  name_folder: string | null;
+  file_url?: string;
+  file_name?: string;
+  name_folder?: string | null;
   folder: {
     file_name?: string;
     file_url?: string;
@@ -22,7 +23,12 @@ interface FolderDialogProps {
 
 // Folder Dialog component
 const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose }) => {
-
+  const [showfile,setshowfile]=useState(false);
+  const [selectedfile,setselectedfile]=useState<File>();
+  const handleclosefile=()=>{
+    setshowfile(false);
+    setselectedfile(undefined);
+  }
   // Function to return the appropriate icon for file types inside the folder
   const getFileIcon = (file_name: string) => {
     if (file_name.endsWith('.pdf')) {
@@ -38,6 +44,13 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose })
   const truncateFileName = (name: string) => {
     return name.length > 9 ? `${name.substring(0, 9)}...` : name;
   };
+
+  const handlefile=(file:any)=>{
+    if(file.file_url && file.file_name){
+      setshowfile(true);
+      setselectedfile(file);
+    }
+  }
 
   return (
     <Modal visible={isVisible} transparent={true} animationType="fade" onRequestClose={onClose}>
@@ -55,12 +68,14 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose })
               <Text style={styles.noFilesText}>This folder is empty</Text>
             ) : (
               file.folder.map((item, index) => (
-                <TouchableOpacity key={index} style={styles.fileContainer}>
+                <TouchableOpacity key={index} style={styles.fileContainer} onPress={()=>handlefile(item)}>
                   {item.file_name && getFileIcon(item.file_name)}
                  {item.file_name && ( <Text style={styles.fileName}>{truncateFileName(item.file_name)}</Text>)}
                 </TouchableOpacity>
               ))
             )}
+            {selectedfile?.file_url && selectedfile?.file_name && (<FilePreviewDialog file_url={selectedfile.file_url} file_name={selectedfile.file_name}
+             isVisible={showfile} onClose={handleclosefile}/> )}
           </View>
         </View>
       </View>

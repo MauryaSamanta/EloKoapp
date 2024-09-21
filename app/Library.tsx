@@ -9,7 +9,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist';  // Import Drag
 import Draggable from 'react-native-draggable';
 import { ScrollView } from 'react-native-gesture-handler';
 import FolderDialog from '@/dialogs/FolderDialog';
-
+import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 import { set } from 'date-fns';
 //import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 // Define the interface for the route params
@@ -139,16 +139,20 @@ const Library: React.FC = () => {
 
   const handlefile=(file:File)=>{
     if(file.name_folder)
-    {
+    { console.log('ok');
       setselectedfolder(file);
       setfolderdialog(true);
     }
-    else
+    else if(file.file_name)
     { console.log("hello");
       setselectedfile(file);
       setshowfile(true);
     }
     
+  }
+  const handlefileclose=()=>{
+    setshowfile(false);
+    setselectedfile(undefined);
   }
 
   const handleclosedialog=()=>{
@@ -216,6 +220,7 @@ const Library: React.FC = () => {
           shouldReverse={true} // Reset to the original position after release
           onDrag={(e, gestureState)=>{handleDrag(e,gestureState,item)}}
           onDragRelease={(e,gestureState)=>{handlerelease(e,gestureState);}}
+          onShortPressRelease={()=>handlefile(item)}
         >
             {getFileIcon(item)}
            {item.file_name && ( <Text style={styles.fileName}>{truncateFileName(item.file_name)}</Text>)}
@@ -225,7 +230,8 @@ const Library: React.FC = () => {
           
         )}
         {selectedfolder && (<FolderDialog file={selectedfolder} isVisible={folderdialog} onClose={handleclosedialog}/>)}
-      
+        {selectedfile && (<FilePreviewDialog file_url={selectedfile.file_url} file_name={selectedfile.file_name} isVisible={showfile} 
+        onClose={handlefileclose}/> )}
         </ScrollView>
       
     </ImageBackground>
