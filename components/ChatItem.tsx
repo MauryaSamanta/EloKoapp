@@ -79,26 +79,14 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
               <Avatar.Image size={40} source={{ uri: senderAvatar }} style={styles.avatar} />
               <Text style={styles.senderName} onPress={showUser}>{senderName}</Text>
              {createdAt ? ( <Text style={styles.timestamp}>{formatMessageTime(createdAt)}</Text>):(
-                <AnimatedCircularProgress
-                size={20}
-                width={15}
-                fill={100}
-                tintColor="#00e0ff"
-                //onAnimationComplete={() => console.log('onAnimationComplete')}
-                backgroundColor="#3d5875" />
+                 <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>sending...</Text>
              )}
             </>
           )}
           {isOwnMessage && (
             <>
              {createdAt ? ( <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>{formatMessageTime(createdAt)}</Text>):(
-              <AnimatedCircularProgress
-              size={20}
-              width={15}
-              fill={100}
-              tintColor="#00e0ff"
-              //onAnimationComplete={() => console.log('onAnimationComplete')}
-              backgroundColor="#3d5875" />
+              <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>sending...</Text>
              )}
               <Text style={styles.senderName}>{senderName}</Text>
               <Avatar.Image size={30} source={{ uri: senderAvatar }} style={styles.ownAvatar} />

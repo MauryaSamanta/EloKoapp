@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, Image, Modal, TouchableOpacity, StyleSheet, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, Image, Modal, TouchableOpacity, StyleSheet, Dimensions, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import Pdf from 'react-native-pdf';
-
 // Define interface for props
 interface FilePreviewDialogProps {
   file_url: string;
@@ -14,7 +13,6 @@ interface FilePreviewDialogProps {
 const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_name, isVisible, onClose }) => {
   const screenWidth = Dimensions.get('window').width;
   const isPDF = file_name.endsWith('.pdf');
-
   return (
     <Modal
       visible={isVisible}
@@ -22,17 +20,22 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.modalBackground}>
-          {/* Close Button at the top right of the screen */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <AntDesign name="close" size={24} color="white" />
-          </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={()=>{!isPDF&& onClose();}}>
+      <View style={styles.modalBackground}>
+        {/* Close Button at the top right of the screen */}
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <AntDesign name="close" size={24} color="white" />
+        </TouchableOpacity>
 
-          {/* File Name at the top center of the screen */}
-          <Text style={styles.fileName}>{file_name}</Text>
+        {/* File Name at the top center of the screen */}
+        <Text style={styles.fileName}>{file_name}</Text>
 
-          {/* Conditionally render image or PDF */}
+        {/* Image taking full width of the screen */}
+        {/* <Image
+          source={{ uri: file_url }}
+          style={[styles.image, { width: screenWidth }]}
+          resizeMode="contain"
+        /> */}
           {!isPDF ? (
             <Image
               source={{ uri: file_url }}
@@ -40,18 +43,24 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
               resizeMode="contain"
             />
           ) : (
+           
             <Pdf
+            trustAllCerts={false}
               source={{ uri: file_url }}
               style={[styles.pdf, { width: screenWidth, height: '80%' }]} // Adjust height as needed
               onLoadComplete={(numberOfPages, filePath) => {
                 console.log(`Number of pages: ${numberOfPages}`);
               }}
+              onPageChanged={(page,numberOfPages) => {
+                console.log(`Current page: ${page}`);
+            }}
               onError={(error) => {
                 console.log(error);
               }}
             />
+         
           )}
-        </View>
+      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -65,6 +74,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  pdf: {
+    flex:1,
+    backgroundColor: 'rgba(0, 0, 0,1.0)',
+    width:Dimensions.get('window').width,
+    height:Dimensions.get('window').height,
+},
   closeButton: {
     position: 'absolute',
     top: 20, // Adjust for status bar or notch if necessary
@@ -85,10 +100,6 @@ const styles = StyleSheet.create({
     marginTop: 80, // Push the image down to leave space for the top section
     height: 'auto',
     aspectRatio: 1, // Maintains aspect ratio for square images
-  },
-  pdf: {
-    marginTop: 80, // Push the PDF viewer down below the top bar
-    height: '80%', // Adjust height as needed
   },
 });
 

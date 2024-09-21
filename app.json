@@ -20,6 +20,10 @@
         "foregroundImage": "./assets/images/EloKoMainLogo.png",
         "backgroundColor": "#121212"
       },
+      "plugins":[
+        "@config-plugins/react-native-blob-util",
+        "@config-plugins/react-native-pdf"
+      ],
       "package": "com.mauryax.client",
       "permissions": [
     "INTERNET",
