@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, ImageBackground, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ImageBackground, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
@@ -166,7 +166,7 @@ const Library: React.FC = () => {
     } else if (file.file_name.endsWith('.pdf')) {
       return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
     } else if (file.file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
-      return <FontAwesome name="picture-o" size={60} color="#34ebc0" />;
+      return  <Image source={{ uri: file.file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
     } else {
       return <MaterialIcons name="insert-drive-file" size={60} color="#2196f3" />;
     }
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', // Equally space items horizontally in the row
     paddingVertical: 50,
     paddingHorizontal: 30,
-
+    height:'100%'
   },
   fileContainer: {
     alignItems: 'center',

@@ -15,6 +15,7 @@ export default function RootLayout() {
       <Stack.Screen name="home"  options={{ headerShown: false }} />
       <Stack.Screen name="HubHome"  options={{ headerShown: false }} />
       <Stack.Screen name="Library"  options={{ headerShown: false }} />
+      <Stack.Screen name="Account"  options={{ headerShown: false }} />
     </Stack>
     </GestureHandlerRootView>
     </PersistGate>

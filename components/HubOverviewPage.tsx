@@ -72,6 +72,9 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
             <Text style={styles.members}>
             {members.length} {member}
             </Text>
+            <TouchableOpacity onPress={()=>console.log('added')}>
+            <Image source={require('../assets/images/plus.png')} style={{ width: 24, height: 24, marginLeft: -10 }} />
+            </TouchableOpacity>
         </View>
       
     </View>

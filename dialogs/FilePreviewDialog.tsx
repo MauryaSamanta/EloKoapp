@@ -43,7 +43,7 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
               resizeMode="contain"
             />
           ) : (
-           
+           <>
             <Pdf
             trustAllCerts={false}
               source={{ uri: file_url }}
@@ -58,7 +58,7 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
                 console.log(error);
               }}
             />
-         
+         </>
           )}
       </View>
       </TouchableWithoutFeedback>

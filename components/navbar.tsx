@@ -11,12 +11,16 @@ const colors = themeSettings("dark");
 interface NavbarProps {
   hub: boolean;
 }
+type AccountNavigationProp = {
+  navigate: (screen: string, params?: any) => void;
+};
 const Navbar = ({hub}: NavbarProps) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const user = useSelector((state: any) => state.auth.user);
   const avatar = user?.avatar_url;
   const [dialog,setdialog]=useState(false);
+  const navigationacc = useNavigation<AccountNavigationProp>();
   //console.log(avatar);
   const handleCreateHubClick = () => {
     // Handle create hub functionality
@@ -55,7 +59,8 @@ const Navbar = ({hub}: NavbarProps) => {
         />)}
         <CreateHubDialog open={dialog} onClose={handleclose} userId={user._id}/>
         <TouchableOpacity //onPress={handleLogout} 
-        style={styles.avatarContainer}>
+        style={styles.avatarContainer}
+        onPress={()=>navigationacc.navigate('Account')}>
           <Avatar
             source={{ uri: avatar }}
             rounded

@@ -48,7 +48,7 @@ const HubHomeScreen: React.FC = () => {
   const [qubes,setQubes]=useState([]);
   const [selectedQube,setselectedQube]=useState<Qube>();
   const [zones,setZones]=useState([]);
-  const [selectedZone,setSelectedZone]=useState(null);
+  const [selectedZone,setSelectedZone]=useState<any>(null);
   const [wall,setwall]=useState('');
   const {_id}=useSelector((state:any)=>state.auth.user);
   const token=useSelector((state:any)=>state.auth.token);
@@ -200,7 +200,8 @@ const fetchZones=async(selectedQube:Qube)=>{
        {selectedQube && ( <View style={styles.zonesplace}>
         <Text style={styles.heading}>Zones</Text>
         {zones?.map((zone:any)=>(
-          <TouchableOpacity style={styles.zone} onPress={()=>{setDrawerOpen(false);setSelectedZone(zone); }} key={zone._id}>
+          <TouchableOpacity style={[styles.zone,{backgroundColor:selectedZone?._id===zone._id?'#7D7D7D':'transparent'}]} 
+          onPress={()=>{setDrawerOpen(false);setSelectedZone(zone); }} key={zone._id}>
           <Text style={styles.zonename}>{zone.name}</Text>
           </TouchableOpacity>
           ))}
@@ -340,10 +341,12 @@ const styles = StyleSheet.create({
   },
   zonesplace:{
     paddingTop:20,
-    marginLeft:15
+    marginLeft:15,
+    width:'58%'
     //alignItems:'center'
   },
   zone:{
+    width:'100%',
     marginTop:10,
     paddingTop:10,
     paddingBottom:10,

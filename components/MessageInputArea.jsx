@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   TextInput,
@@ -19,22 +19,37 @@ import { useSelector } from 'react-redux';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import uuid from 'react-native-uuid';
+import CloudDialog from '@/dialogs/CloudDialog';
 const { width } = Dimensions.get('window');
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
 
-const MessageInputArea = ({zone,qube,setmessages}) => {
-  const [message, setMessage] = useState('');
+const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
+  const [tag,settag]=useState(messagetag||'');
+  const [message, setMessage] = useState(tag||'');
+  console.log(message);
   const [showMenu, setShowMenu] = useState(false);
   const {_id,username,avatar_url}=useSelector((state)=>state.auth.user);
   const [filetoshare,setfiletoshare]=useState(null);
-  const [sharefile,setsharefile]=useState();
+  const [sharefile,setsharefile]=useState(null);
   const [filedata,setfiledata]=useState('');
   const [currentuuid,setcurrentuuid]=useState('');
+  const [cloud,setcloud]=useState(false);
+  const inputRef = useRef(null);
+  const handleclosecloud=()=>{
+    setcloud(false);
+  }
+  useEffect(()=>{
+    settag(messagetag)
+  },[messagetag])
+  useEffect(()=>{
+    setMessage(tag)
+    
+  },[tag])
   useEffect(()=>{
     const getuuid=()=>{
       setcurrentuuid(uuid.v4());
-      console.log(currentuuid);
+      //console.log(currentuuid);
     }
     getuuid();
   },[sharefile]);
@@ -61,24 +76,24 @@ const MessageInputArea = ({zone,qube,setmessages}) => {
     }
   }
   const handleSend = async() => {
-    if(!filetoshare && !sharefile)
+    if(!sharefile || sharefile?.cloud)
     {let newMessage = {
       text: message,
       senderName: username,
       senderAvatar: avatar_url,
       sender_id: _id,
-      // name_file:filetoshare?.file_name,
-      // file: filetoshare?.file_url,
-      // folder:filetoshare?.folder,
-      // name_folder:filetoshare?.name_folder,
+      name_file:sharefile?.name,
+      file:sharefile?.uri,
+      folder:sharefile?.folder,
       reactions: null,
       zone: zone,
       qube:qube
     };
-    // if(zone && qube)
-    // {
-    //   newMessage={...newMessage,zone:zone};
-    // }
+    if(sharefile?.cloud && sharefile?.folder)
+    newMessage={...newMessage, name_folder:sharefile?.name};
+    setsharefile(undefined);
+    setShowMenu(false);
+    //console.log(newMessage);
     socket.emit('sendMessage', newMessage);
     setMessage('');}
     else if(sharefile && sharefile.uri && sharefile.mimeType && sharefile.name){
@@ -139,6 +154,20 @@ const MessageInputArea = ({zone,qube,setmessages}) => {
       setsharefile(undefined);
   };
 
+  const handlesharefromcloud=(file)=>{
+    let data;
+    if(file.file_name)
+    data={name:file.file_name, uri:file.file_url, cloud:true}
+  else
+  {
+    data={name:file.name_folder,folder:file.folder, cloud:true}
+  }
+    setsharefile(data);
+    setcloud(false);
+    console.log(file);
+    //console.log(!sharefile);
+  }
+
   return (
     <View style={styles.container}>
       
@@ -152,24 +181,33 @@ const MessageInputArea = ({zone,qube,setmessages}) => {
 
       {/* Text Input */}
       {!showMenu?(<><TextInput
-        style={styles.input}
-        placeholder="Type a message..."
+        style={[styles.input]}
+        ref={inputRef}
+        placeholder="Message..."
         placeholderTextColor="#aaa"
         value={message}
         multiline
         onChangeText={setMessage}
+        
       />
       {!message.trim() && (
+        <>
         <TouchableOpacity style={styles.sendButton} onPress={() => { /* handle mic press */ }}>
           <FontAwesome name="microphone" size={24} color="white" />
           
         </TouchableOpacity>
+         
+       </>
       )}
       <TouchableOpacity style={styles.sendButton} onPress={() => { /* handle mic press */ }}>
       <MaterialIcons name="emoji-emotions" size={24} color="white" />
       </TouchableOpacity></>):(
         <View style={styles.menu}>
           {!sharefile?(<>
+            <TouchableOpacity style={styles.menuItem} onPress={() => {setcloud(true)}}>
+         <Entypo name="thunder-cloud" size={19} color="white" />
+         <Text style={styles.menuText}>Cloud</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={selectFiles}>
           <Icon name="document-outline" size={19} color="#fff" />
           <Text style={styles.menuText}>File</Text>
@@ -178,10 +216,7 @@ const MessageInputArea = ({zone,qube,setmessages}) => {
           <Icon name="folder-outline" size={19} color="#fff" />
           <Text style={styles.menuText}>Folder</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Icon name="mic-outline" size={19} color="#fff" />
-          <Text style={styles.menuText}>Voice</Text>
-        </TouchableOpacity>
+        
         <TouchableOpacity style={styles.menuItem}>
           <Icon name="videocam-outline" size={19} color="#fff" />
           <Text style={styles.menuText}>Video</Text>
@@ -207,6 +242,7 @@ const MessageInputArea = ({zone,qube,setmessages}) => {
       <TouchableOpacity onPress={()=>{if(message.trim() || sharefile || filetoshare)handleSend();}} style={styles.sendButton}>
         <Icon name="send" size={28} color="#fff" />
       </TouchableOpacity>
+      <CloudDialog visible={cloud} onClose={handleclosecloud} handlesharefromcloud={handlesharefromcloud}/>
     </View>
   );
 };

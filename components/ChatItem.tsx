@@ -13,16 +13,17 @@ interface ChatItemProps {
   isOwnMessage: boolean;
   setdrawer:(x:boolean)=>void;
   setchat(x:Message):void;
+  setmessage(x:string):void;
 }
 
 const { width } = Dimensions.get('window');
 
-const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat }) => {
+const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat,setmessage }) => {
   const [user, setUser] = useState<Member>();
   const [showCard, setShowCard] = useState(false);
   const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt } = message;
   const [bgcolor,setbgcolor]=useState('transparent');
-  //const [drawer,setdrawer]=useState(false);
+  
   const showUser = async () => {
     try {
       const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id}`, {
@@ -54,7 +55,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
     const parts = text?.split(/(#\w+)/g);
     return parts.map((part, index) => (
       part.match(/#\w+/) ? (
-        <Text key={index} style={styles.hashtag}>{part}</Text>
+        <Text key={index} style={styles.hashtag} onPress={()=>{setmessage(part);console.log(part)}}>{part}</Text>
       ) : (
         <Text key={index}>{part}</Text>
       )
@@ -70,7 +71,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
   }
   
   return (
-  <Pressable onLongPress={()=>{setdrawer(true); setchat(message);}} onPressIn={handlepressin} onPressOut={handlepressout}>
+  <Pressable onLongPress={()=>{if(createdAt){setdrawer(true); setchat(message);}}} onPressIn={handlepressin} onPressOut={handlepressout}>
     <View style={{ flexDirection: isOwnMessage ? 'row-reverse' : 'row', marginBottom: 20, backgroundColor:bgcolor, borderRadius:20 }}>
       <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
         <View style={[styles.header, isOwnMessage && { justifyContent: 'flex-end' }]}>

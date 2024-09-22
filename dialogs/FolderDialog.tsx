@@ -30,11 +30,11 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose })
     setselectedfile(undefined);
   }
   // Function to return the appropriate icon for file types inside the folder
-  const getFileIcon = (file_name: string) => {
+  const getFileIcon = (file_name: string, file_url:string) => {
     if (file_name.endsWith('.pdf')) {
       return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
     } else if (file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
-      return <FontAwesome name="picture-o" size={60} color="#34ebc0" />;
+      return <Image source={{ uri: file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
     } else {
       return <MaterialIcons name="insert-drive-file" size={60} color="#2196f3" />;
     }
@@ -69,7 +69,7 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose })
             ) : (
               file.folder.map((item, index) => (
                 <TouchableOpacity key={index} style={styles.fileContainer} onPress={()=>handlefile(item)}>
-                  {item.file_name && getFileIcon(item.file_name)}
+                  {item.file_name && item.file_url && getFileIcon(item.file_name, item.file_url)}
                  {item.file_name && ( <Text style={styles.fileName}>{truncateFileName(item.file_name)}</Text>)}
                 </TouchableOpacity>
               ))

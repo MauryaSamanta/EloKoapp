@@ -36,7 +36,8 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   const [tagdialog,settagdialog]=useState(false);
   const [drawer,setdrawer]=useState(false);
   const [chat,setchat]=useState<Message>();
-  //console.log(hubId);
+  const [message,setmessage]=useState('');
+  //console.log(message);
   const opentagdialog=()=>{
     settagdialog(true);
   }
@@ -65,9 +66,9 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
 
   useEffect(()=>{
     socket.on('receiveMessage', (message) => {
-      
+      console.log(message);
       setmessages((prevMessages) =>
-        message.file
+        message.file && message.uuid
           ? prevMessages.map((msg) =>
               msg.uuid === message.uuid ? message : msg
           
@@ -82,11 +83,15 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     // Scroll to the bottom whenever messages change
     scrollViewRef.current?.scrollToEnd({ animated: false });
   }, [messages]);
+
+  useEffect(()=>{
+    console.log(message);
+  },[message])
   return (
     <View style={styles.container}>
       {/* Header Section */}
      
-      <View style={styles.header}>
+      <View style={[styles.header,{backgroundColor:'transparent'}]}>
         <Text style={styles.zoneName}>{selectedZone?.name}</Text>
 
         <TouchableOpacity style={styles.storeButton} onPress={opentagdialog}
@@ -104,14 +109,15 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
 
           {/* Messages */}
           {messages?.map((message:Message, index) => (
-            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}/>
+            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
+            setmessage={setmessage}/>
           ))}
         </View>
       </ScrollView>
       
       <View >
       
-      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages}/>
+      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message}/>
       {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={hubId}/>)}
       </View>
       
