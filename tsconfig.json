@@ -13,5 +13,6 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "components/MessageInputArea.jsx", "components/zone.jsx", "drawers/MessageDrawer.jsx", "drawers/MessageDrawer.jsx", "dialogs/CloudDialog.jsx"  ]
+, "components/MessageInputArea.jsx", "components/zone.jsx", "drawers/MessageDrawer.jsx", "drawers/MessageDrawer.jsx", "dialogs/CloudDialog.jsx", "components/LibraryFolderIcon.jsx",
+  "dialogs/AddMemberDialog.jsx", "dialogs/FolderUploadDialog.jsx"  ]
 }

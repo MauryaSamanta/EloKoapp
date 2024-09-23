@@ -10,7 +10,9 @@ import Draggable from 'react-native-draggable';
 import { ScrollView } from 'react-native-gesture-handler';
 import FolderDialog from '@/dialogs/FolderDialog';
 import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
+import LibraryFolderIcon from '@/components/LibraryFolderIcon';
 import { set } from 'date-fns';
+
 //import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 // Define the interface for the route params
 interface RouteParams {
@@ -162,7 +164,8 @@ const Library: React.FC = () => {
   // Function to return the appropriate icon for file types
   const getFileIcon = (file: File) => {
     if (file.name_folder) {
-      return  <Entypo name="folder" size={60} color={"#ff9800"} />;
+      // return  <Entypo name="folder" size={60} color={"#ff9800"} />;
+      return <LibraryFolderIcon folder={file.folder}/>;
     } else if (file.file_name.endsWith('.pdf')) {
       return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
     } else if (file.file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
@@ -172,9 +175,11 @@ const Library: React.FC = () => {
     }
   };
 
+  
+
   // Truncate long filenames to 9 characters with ellipsis
   const truncateFileName = (name: string) => {
-    return name.length > 9 ? `${name.substring(0, 9)}...` : name;
+    return name.length > 8 ? `${name.substring(0, 8)}...` : name;
   };
 
   useEffect(() => {

@@ -4,6 +4,8 @@ import { themeSettings } from '../constants/Colors';
 import { Member } from '@/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import UserProfileDialog from '@/dialogs/UserProfileDialog';
+import AddMemberDialog from '@/dialogs/AddMemberDialog';
+import { useSelector } from 'react-redux';
 const colors = themeSettings("dark");
 // Define the props interface for HubOverviewPage
 interface HubOverviewPageProps {
@@ -14,7 +16,8 @@ interface HubOverviewPageProps {
   demonym?: string;
   hubId?: string;
   members:Member[],
-  owner?:Member
+  owner?:Member,
+  
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -27,9 +30,30 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
   banner_url,
   demonym,
   members,
-  owner
+  owner,
+  hubId
 }) => {
    const [userdialog,setuserdialog]=useState(false);
+   const [code,setcode]=useState('');
+   const [addmemberdialog,setaddmemberdialog]=useState(false);
+   const token=useSelector((state:any)=>state.auth.token);
+   const invite=async()=>{
+    try {
+      const response = await fetch(`https://surf-jtn5.onrender.com/invite/${hubId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setcode(data.code);
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+    setaddmemberdialog(true);
+   };
+   const closeadddialog=()=>{
+    setaddmemberdialog(false);
+   }
    const openusercard=()=>{
     setuserdialog(true);
    }
@@ -72,9 +96,10 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
             <Text style={styles.members}>
             {members.length} {member}
             </Text>
-            <TouchableOpacity onPress={()=>console.log('added')}>
+            <TouchableOpacity onPress={()=>invite()}>
             <Image source={require('../assets/images/plus.png')} style={{ width: 24, height: 24, marginLeft: -10 }} />
             </TouchableOpacity>
+            {code && (<AddMemberDialog visible={addmemberdialog} code={code} onClose={closeadddialog}/>)}
         </View>
       
     </View>

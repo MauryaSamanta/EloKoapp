@@ -233,7 +233,7 @@ const fetchZones=async(selectedQube:Qube)=>{
 
         <View style={styles.content}>
          {!selectedZone?( <HubOverviewPage name={name} description={description} avatar_url={avatar_url}
-                           banner_url={banner_url} demonym={demonym} members={members} owner={owner}/>):(
+                           banner_url={banner_url} demonym={demonym} members={members} owner={owner} hubId={hubId}/>):(
                             <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId}/>
                            )}
         </View>

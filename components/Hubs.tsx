@@ -136,6 +136,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
                 onPress={() => {
                   const { name, description, avatar_url, banner_url, demonym } = item;
                   const hubId=item._id;
+                  
                   const ownerId=item.owner_id;
                   const data={name,description,avatar_url,banner_url,demonym,hubId,ownerId};
                   navigationhub.navigate("HubHome",data);

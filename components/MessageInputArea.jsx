@@ -20,6 +20,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import uuid from 'react-native-uuid';
 import CloudDialog from '@/dialogs/CloudDialog';
+import FolderUploadDialog from '@/dialogs/FolderUploadDialog';
 const { width } = Dimensions.get('window');
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
@@ -35,7 +36,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
   const [filedata,setfiledata]=useState('');
   const [currentuuid,setcurrentuuid]=useState('');
   const [cloud,setcloud]=useState(false);
+  const [folderupload,setfolderupload]=useState(false);
   const inputRef = useRef(null);
+  const [files,setfiles]=useState([]);
   const handleclosecloud=()=>{
     setcloud(false);
   }
@@ -212,7 +215,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
           <Icon name="document-outline" size={19} color="#fff" />
           <Text style={styles.menuText}>File</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={()=>setfolderupload(true)}>
           <Icon name="folder-outline" size={19} color="#fff" />
           <Text style={styles.menuText}>Folder</Text>
         </TouchableOpacity>
@@ -243,6 +246,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
         <Icon name="send" size={28} color="#fff" />
       </TouchableOpacity>
       <CloudDialog visible={cloud} onClose={handleclosecloud} handlesharefromcloud={handlesharefromcloud}/>
+      <FolderUploadDialog visible={folderupload} onClose={()=>setfolderupload(false)} setFiles={setfiles}/>
     </View>
   );
 };
