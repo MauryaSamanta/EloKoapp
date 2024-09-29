@@ -101,7 +101,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
           {name_folder && (
             <View style={styles.fileContainer}>
               <Entypo name="folder" size={40} color="#ff9800" />
-              <Text style={styles.fileName}>{name_folder}</Text>
+              <Text style={[styles.fileName]}>{name_folder}</Text>
             </View>
           )}
 
@@ -120,7 +120,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
 
           {(text || voice) && (
             <View>
-              {text && <Text style={styles.text}>{renderHighlightedMessage(text)}</Text>}
+              {text && <Text style={[styles.text,isOwnMessage && {textAlign:'right', paddingRight:34}]}>{renderHighlightedMessage(text)}</Text>}
               {voice && <Text style={styles.text}>[Audio Message]</Text>}
             </View>
           )}
@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
   text: {
     color: 'white',
     fontSize: 16,
+    
   },
   fileContainer: {
     flexDirection: 'row',

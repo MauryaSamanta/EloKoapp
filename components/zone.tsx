@@ -9,6 +9,7 @@ import { io } from 'socket.io-client';
 import MessageDrawer from '@/drawers/MessageDrawer';
 import MessageOptionsDialog from '@/dialogs/MessageOptionsDialog';
 import { Hub } from '@/types';
+import TypingAnimation from './TypingAnimation';
 //import MessageDrawer from '@/drawers/MessageDrawer';
 
 // // Define TypeScript interfaces for the props
@@ -31,12 +32,15 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   //handleOpenStoreDialog,
   //messages = [],
 }) => {
-    const {_id}=useSelector((state:any)=>state.auth.user);
+    const {_id,username}=useSelector((state:any)=>state.auth.user);
+    
   const [messages,setmessages]=useState<Message[]>([]);
   const [tagdialog,settagdialog]=useState(false);
   const [drawer,setdrawer]=useState(false);
   const [chat,setchat]=useState<Message>();
   const [message,setmessage]=useState('');
+  const [userTyping,setuserTyping]=useState();
+  const [type,settype]=useState(false);
   //console.log(message);
   const opentagdialog=()=>{
     settagdialog(true);
@@ -65,10 +69,24 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   },[selectedZone]);
 
   useEffect(()=>{
+    socket.on('UserTyping', (data) => {
+      const { user, typing } = data;
+      console.log(user);
+      if (typing) {
+        // Show "user is typing" indicator
+        setuserTyping(user);
+        settype(true);
+      } else {
+        // Hide "user is typing" indicator
+        setuserTyping(undefined);
+        settype(false);
+      }
+    });
+
     socket.on('receiveMessage', (message) => {
       console.log(message);
       setmessages((prevMessages) =>
-        message.file && message.uuid
+        (message.file || message.folder) && message.uuid
           ? prevMessages.map((msg) =>
               msg.uuid === message.uuid ? message : msg
           
@@ -112,9 +130,11 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
             <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
             setmessage={setmessage}/>
           ))}
+          
         </View>
+        
       </ScrollView>
-      
+      {userTyping && (<TypingAnimation userTyping={userTyping} username={username}/>)}
       <View >
       
       <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message}/>

@@ -28,8 +28,9 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
       const base64 = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
       
       const fileData = {
-        file_name: result.assets[0].name,
-        file_url: `data:${result.assets[0].mimeType};base64,${base64}`
+        uri: result.assets[0].uri,
+        name:result.assets[0].name,
+        type:result.assets[0].mimeType
       };
 
       setLocalFiles((prevFiles) => [...prevFiles, fileData]);
@@ -49,7 +50,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
   const renderFileItem = ({ item, index }) => (
     
     <View style={styles.fileItem}>
-      <Text style={styles.fileName}>{item.file_name}</Text>
+      <Text style={styles.fileName}>{item.name}</Text>
       <TouchableOpacity onPress={() => handleDeleteFile(index)}>
         <MaterialCommunityIcons name="delete" size={24} color="red" />
       </TouchableOpacity>
@@ -57,7 +58,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent={true}>
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={()=>{onClose();setLocalFiles([]); setFolderName('')}}>
       <View style={styles.modalContainer}>
         <View style={styles.dialogContainer}>
           <Text style={styles.dialogTitle}>Create New Folder</Text>
@@ -67,6 +68,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
             value={folderName}
             onChangeText={handleFolderNameChange}
             style={styles.textInput}
+            placeholderTextColor={'#616161'}
           />
 
           <FlatList
@@ -77,13 +79,11 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
             style={styles.fileList}
           />
 
-          <View style={styles.buttonContainer}>
-            <Button title="Add File" onPress={handleAddFile} />
-          </View>
+          <TouchableOpacity style={styles.buttonContainer} onPress={handleAddFile}>
+            <Text style={[{color:'white'}]}>Add File</Text>
+          </TouchableOpacity>
 
-          <View style={styles.footerButtons}>
-            <Button title="Close" onPress={onClose} />
-          </View>
+         
         </View>
       </View>
     </Modal>
@@ -144,6 +144,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginBottom: 20,
+    backgroundColor:'#635acc',
+    justifyContent:'center',
+    alignItems:'center',
+    padding:5,
+    borderRadius:20
   },
   footerButtons: {
     flexDirection: 'row',

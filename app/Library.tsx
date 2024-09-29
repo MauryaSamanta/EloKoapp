@@ -11,6 +11,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import FolderDialog from '@/dialogs/FolderDialog';
 import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 import LibraryFolderIcon from '@/components/LibraryFolderIcon';
+import * as ImagePicker from 'expo-image-picker';
 import { set } from 'date-fns';
 
 //import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
@@ -18,7 +19,8 @@ import { set } from 'date-fns';
 interface RouteParams {
   wallpaper: string | null;
   hub: string;
-  hubname?:string
+  hubname?:string;
+  setwall:(x:string)=>void;
 }
 
 // Define the file interface
@@ -26,7 +28,7 @@ interface File {
   _id: string;
   file_url: string;
   file_name: string;
-  name_folder: string | null;
+  name_folder: string ;
   folder: {
     file_name?: string;
     file_url?: string;
@@ -36,8 +38,9 @@ interface File {
 
 const Library: React.FC = () => {
   const route = useRoute();
-  const { wallpaper, hub, hubname } = route.params as RouteParams;
+  const { wallpaper, hub, hubname,setwall } = route.params as RouteParams;
   const token = useSelector((state: any) => state.auth.token);
+  const user=useSelector((state:any)=>state.auth.user);
   const [files, setFiles] = useState<File[]>([]);
   const itemRefs = useRef<(TouchableOpacity | null)[]>([]);
   let coordinates: { _id:string; name:string; key: string; x: number; y: number }[] = [];
@@ -46,6 +49,7 @@ const Library: React.FC = () => {
   const [folderdialog,setfolderdialog]=useState(false);
   const [selectedfile,setselectedfile]=useState<File>();
   const [showfile,setshowfile]=useState(false);
+  const [wall,setwallpaper]=useState(wallpaper);
   const handleDrag = (e: any, gestureState: any, item:File) => {
     const { moveX, moveY } = gestureState;
     setdragfile(item);
@@ -135,6 +139,35 @@ const Library: React.FC = () => {
       console.error('Error fetching files:', error);
     }
   };
+
+  const removefilefromfolder=async(filedata:any)=>{
+      const data={
+        userid:user._id, 
+        hubid:hub,
+        file_name: filedata.file_name,
+        file_url: filedata.file_url, 
+        folderid:selectedfolder?._id
+      }
+      try {
+        const response=await fetch(`https://surf-jtn5.onrender.com/file/remove`,{
+          method:"PATCH",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(data)
+        });
+        setFiles(prevFiles => prevFiles.map(folder => 
+          folder._id === selectedfolder?._id 
+            ? { ...folder, folder: folder.folder.filter(file => !(file.file_name === filedata.file_name && file.file_url === filedata.file_url)) }
+            : folder
+        ));
+        setFiles(prevFiles => prevFiles.filter(folder => !(folder.name_folder && folder.folder.length === 0)));
+
+        const newfile=await response.json();
+         setFiles((prevFiles)=>[...prevFiles,newfile]);
+      } catch (error) {
+        
+      }
+      setselectedfolder(undefined);
+  }
   useEffect(() => {
     getFiles();
   }, [hub]);
@@ -199,20 +232,50 @@ const Library: React.FC = () => {
     //console.log(coordinates);
   }, [ handleDrag]); // Re-run when files change
 
+  const selectwall=async()=>{
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      base64:true
+    });
+    const formData=new FormData();
+    if(result.assets)
+    formData.append("avatar",
+    {uri:result.assets[0].uri,
+    type:result.assets[0].mimeType,
+    name:result.assets[0].fileName
+    }as any);
+    formData.append("id",user._id);
+    console.log(JSON.stringify(formData));
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/wall/${hub}`,{
+        method:"PATCH",
+        body:formData
+      });
+      const data=await response.json();
+      setwall(data.wall_url);
+      setwallpaper(data.wall_url);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <ImageBackground
-      source={wallpaper ? { uri: wallpaper } : undefined}
+      source={wall ? { uri: wall } : undefined}
       style={[styles.background, { backgroundColor: wallpaper ? '#635acc' : 'rgba(44, 44, 44, 0.8)' }]}
       imageStyle={wallpaper ? styles.wallpaper : undefined}
       //borderRadius={50}
     >
-       <View style={{  backgroundColor:'#635acc', justifyContent:'center', borderBottomEndRadius:20 }}>
+       <View style={{  backgroundColor:'#635acc', justifyContent:'space-between',flexDirection:'row', borderBottomEndRadius:20 }}>
         <Text style={[{color:'white',
                        marginLeft:20,marginTop:50, marginBottom:15,
                        fontSize:17}]}>
                         {hubname} 
         </Text>
+        <TouchableOpacity onPress={selectwall}>
+        <MaterialIcons name="now-wallpaper" size={30} color="white" style={[{marginTop:50, marginRight:30}]} />
+        </TouchableOpacity>
        </View>
        <ScrollView contentContainerStyle={styles.container}>
         {files.map((item:File, index)=>
@@ -234,7 +297,7 @@ const Library: React.FC = () => {
           </TouchableOpacity>
           
         )}
-        {selectedfolder && (<FolderDialog file={selectedfolder} isVisible={folderdialog} onClose={handleclosedialog}/>)}
+        {selectedfolder && (<FolderDialog file={selectedfolder} isVisible={folderdialog} onClose={handleclosedialog} movefile={removefilefromfolder}/>)}
         {selectedfile && (<FilePreviewDialog file_url={selectedfile.file_url} file_name={selectedfile.file_name} isVisible={showfile} 
         onClose={handlefileclose}/> )}
         </ScrollView>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, SafeAreaView, Animated } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { createBottomTabNavigator, BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -9,13 +9,37 @@ import Hubs from '@/components/Hubs';
 import InboxMobile from '@/components/InboxMobile';
 import { themeSettings } from '../constants/Colors';
 import LinearGradient from 'react-native-linear-gradient';
-import { Hub, HubsProps } from '../types';
+import { Chat, Hub, HubsProps } from '../types';
+import { setlogin } from './store/authSlice';
 const colors = themeSettings("dark");
+import { registerForPushNotificationsAsync } from '@/NotificationPermission';
 const Tab = createBottomTabNavigator();
 //const [mainhubs,setmainhubs]=useState<Hub[]>([]);
 // "My Hubs" screen
 function MyHubsScreen() {
   const { _id } = useSelector((state: any) => state.auth.user);
+  const user=useSelector((state:any)=>state.auth.user);
+  const token=useSelector((state:any)=>state.auth.token);
+  const dispatch=useDispatch();
+  useEffect(()=>{
+   const tokenfornotifications=async()=>{ const pushtoken=await registerForPushNotificationsAsync();
+    console.log(pushtoken);
+    const data={pushtoken:pushtoken};
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/users/${_id}`,{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data)
+      });
+      const val=await response.json();
+      dispatch(setlogin({user:user,token:token}))
+
+    } catch (error) {
+      console.log(error);
+    }}
+    tokenfornotifications();
+  },[])
+
   const [mainhubs,setmainhubs]=useState<Hub[]>([]);
   return (
     <SafeAreaView style={styles.container}>
@@ -30,12 +54,13 @@ function MyHubsScreen() {
 
 // "Inbox" screen (placeholder for now)
 function InboxScreen() {
+  const [mainchats,setmainchats]=useState<Chat[]>([]);
   return (
     <SafeAreaView style={styles.container}>
-      <Navbar hub={false}/>
+      <Navbar hub={false} setmainchats={setmainchats}/>
       <View style={styles.inbox}>
         {/* <Text style={styles.text}>Inbox coming soon!</Text> */}
-        <InboxMobile/>
+        <InboxMobile setmainchats={setmainchats}/>
       </View>
     </SafeAreaView>
   );
@@ -124,8 +149,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    //sjustifyContent: 'center',
+    //alignItems: 'center',
     marginBottom:70
   },
   inbox:{

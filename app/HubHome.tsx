@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Animated, PanResponder, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { themeSettings } from '../constants/Colors';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import HubOverviewPage from '@/components/HubOverviewPage';
@@ -12,6 +13,8 @@ import { Member } from '@/types';
 import { Qube } from '@/types';
 import HexagonWithText from '@/components/HexagonWithText';
 import ZoneScreen from '@/components/zone';
+import CreateQubeDialog from '@/dialogs/CreateQubeDialog';
+import CreateZoneDialog from '@/dialogs/CreateZoneDialog';
 // Define the route parameters type
 type HubHomeRouteParams = {
   name?: string;
@@ -29,6 +32,9 @@ type NavigationType = NavigationProp<RootStackParamList>;
 type LibraryNavProp = {
   navigate: (screen: string, params?: any) => void;
 };
+type SettingNavProp={
+  navigate:(screen:string, params?:any)=>void;
+}
 // Drawer width
 const statusBarHeight = StatusBar.currentHeight || 0;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -49,13 +55,21 @@ const HubHomeScreen: React.FC = () => {
   const [selectedQube,setselectedQube]=useState<Qube>();
   const [zones,setZones]=useState([]);
   const [selectedZone,setSelectedZone]=useState<any>(null);
+  const [qubediag,setqubediag]=useState(false);
+  const [zonediag,setzonediag]=useState(false);
   const [wall,setwall]=useState('');
   const {_id}=useSelector((state:any)=>state.auth.user);
   const token=useSelector((state:any)=>state.auth.token);
   const navigationlibrary = useNavigation<LibraryNavProp>();
+  const navigationsetting=useNavigation<SettingNavProp>();
   // Use the route hook to get params
   const route = useRoute<HubHomeRouteProp>();
   const { name, description, avatar_url, banner_url, demonym, hubId,ownerId } = route.params;
+  const [hubname,sethubname]=useState(name);
+  const [desc,setdesc]=useState(description);
+  const [avatar,setavatar]=useState(avatar_url);
+  const [banner,setbanner]=useState(banner_url);
+  const [demon,setdemon]=useState(demonym);
   const drawerwidth=selectedQube?EXPANDED_DRAWER_WIDTH:DRAWER_WIDTH;
   //console.log(selectedQube);
   useEffect(()=>{
@@ -195,16 +209,25 @@ const fetchZones=async(selectedQube:Qube)=>{
         
        {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);
         setSelectedZone(null);fetchZones(qube);setselectedQube(qube);}} selectedQube={selectedQube} setselectedQube={setselectedQube}/>))}
+        <TouchableOpacity style={[{marginTop:20}]} onPress={()=>setqubediag(true)}>
+        <AntDesign name="pluscircleo" size={34} color="white" />
+        </TouchableOpacity>
        </View>
         </View>
        {selectedQube && ( <View style={styles.zonesplace}>
+        <View style={[{flexDirection:'row', justifyContent:'space-between'}]}>
         <Text style={styles.heading}>Zones</Text>
+        <Text style={[{borderColor:'white', color:'white', fontSize:20, borderWidth:1, borderStyle:'dashed', borderRadius:30,
+            paddingHorizontal:15, width:42, textAlign:'center'
+          }]} onPress={()=>setzonediag(true)}>+</Text>
+          </View>
         {zones?.map((zone:any)=>(
           <TouchableOpacity style={[styles.zone,{backgroundColor:selectedZone?._id===zone._id?'#7D7D7D':'transparent'}]} 
           onPress={()=>{setDrawerOpen(false);setSelectedZone(zone); }} key={zone._id}>
           <Text style={styles.zonename}>{zone.name}</Text>
           </TouchableOpacity>
           ))}
+          
         </View>)}
         </View>
       </Animated.View>
@@ -219,24 +242,31 @@ const fetchZones=async(selectedQube:Qube)=>{
 
           {/* Open Library Button (center) */}
           <TouchableOpacity onPress={() => {
-            const data={hub:hubId, wallpaper:wall, hubname:name};
+            const data={hub:hubId, wallpaper:wall, hubname:hubname, setwall:setwall};
             navigationlibrary.navigate("Library",data);
           }} style={styles.libraryButton}>
             <Text style={{ color: 'white' }}>Open Library</Text>
           </TouchableOpacity>
 
           {/* Settings Icon (right) */}
-          <TouchableOpacity onPress={() => console.log('Go to Settings')}>
+          <TouchableOpacity onPress={() =>{
+            const data={hubname:hubname,sethubname:sethubname,avatar:avatar,setavatar:setavatar,demon:demon,setdemon:setdemon,banner:banner,
+              setbanner:setbanner, desc:desc,setdesc:setdesc, hubId:hubId
+            };
+            navigationsetting.navigate("HubSetting",data);
+          }}>
             <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-         {!selectedZone?( <HubOverviewPage name={name} description={description} avatar_url={avatar_url}
-                           banner_url={banner_url} demonym={demonym} members={members} owner={owner} hubId={hubId}/>):(
+         {!selectedZone?( <HubOverviewPage name={hubname} description={desc} avatar_url={avatar}
+                           banner_url={banner} demonym={demon} members={members} owner={owner} hubId={hubId}/>):(
                             <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId}/>
                            )}
         </View>
+        <CreateQubeDialog visible={qubediag} onClose={()=>setqubediag(false)} setQubes={setQubes} hub={hubId}/>
+        <CreateZoneDialog visible={zonediag} onClose={()=>setzonediag(false)} setZones={setZones} qube={selectedQube}/>
       </View>
     </View>
   );

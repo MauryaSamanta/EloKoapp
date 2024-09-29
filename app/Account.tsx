@@ -129,7 +129,32 @@ const Account = () => {
       //console.log(result);
   
   };
-
+ 
+  async function sendPushNotification(expoPushToken: string) {
+    //console.log(expoPushToken);
+    const message = {
+      to: expoPushToken,
+      sound: 'default',
+      title: 'Original Title',
+      body: 'And here is the body!',
+      data: { someData: 'goes here' },
+    };
+   try {
+    const response=await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+    console.log(await response.json());
+   } catch (error) {
+    console.log(error);
+   }
+    
+  }
   return (
     <TouchableWithoutFeedback onPress={handleOutsideClick}>
       <View style={styles.container}>
@@ -209,7 +234,7 @@ const Account = () => {
           {user && <UserProfileDialog open={showCard} onClose={handleCloseCard} user={user} />}
         </View>
         <View style={[{flexDirection:'row', position:!isEditingBio && !isEditingUsername?'absolute':'relative', bottom:0}]}>
-            <Text style={[{color:'#7D7D7D', marginTop:13}]}>enjoy with</Text>
+            <Text style={[{color:'#7D7D7D', marginTop:13, marginRight:-7}]}>enjoy with</Text>
         <Image
           source={require('../assets/images/EloKoMainLogo.png')} // Update with the correct path
           style={[{width:140, height:50}]}
@@ -283,6 +308,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    padding:1
     //fontWeight: 'bold',
   },
   bioInput: {

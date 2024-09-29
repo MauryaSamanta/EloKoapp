@@ -1,8 +1,17 @@
-import React from 'react';
-import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback, Alert,Share } from 'react-native';
 import Svg, { ClipPath, Polygon, Rect, Defs, Image as SvgImage } from 'react-native-svg';
 import { Member } from '@/types';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Feather from '@expo/vector-icons/Feather';
+import { useSelector } from 'react-redux';
+import { captureRef } from 'react-native-view-shot';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import * as Permissions from 'expo-permissions';
+import * as Sharing from 'expo-sharing';
+import * as Linking from 'expo-linking';
+//import Share from 'react-native-share';
 interface UserProfileDialogProps {
   open: boolean;
   onClose: () => void;
@@ -28,6 +37,7 @@ const formatDate = (dateString: string): string => {
 
 // HexagonImage Component
 const HexagonImage: React.FC<{ uri?: string; style?: any }> = ({ uri, style }) => {
+  
   return (
     <View style={[styles.hexagonContainer, style]}>
       <Svg height="100" width="100" viewBox="0 0 100 100">
@@ -60,19 +70,50 @@ const HexagonImage: React.FC<{ uri?: string; style?: any }> = ({ uri, style }) =
 
 const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, user }) => {
   if (!user) return null;
-
+  const {_id}=useSelector((state:any)=>state.auth.user);
+  const modalRef = useRef(); // Reference for capturing the modal content
+  const captureModal = async () => {
+    try {
+      // Capture the view and save as a JPEG
+      const uri = await captureRef(modalRef, {
+        format: 'jpg',
+        quality: 1.0,
+      });
+  
+      // Check if sharing is available
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Sharing not available', 'Sharing is not available on this device.');
+        return;
+      }
+      const message = "Check out my EloKo Card!";
+      // Share the image
+      await Sharing.shareAsync(uri,{
+        dialogTitle:message
+      });
+      // Share.open({message:message,url:uri}).then((res) => {
+      //   console.log(res);
+      // })
+      // .catch((err) => {
+      //   err && console.log(err);
+      // });
+  
+      
+    } catch (error) {
+      console.error('Failed to capture modal content:', error);
+    }
+  };
   return (
     <Modal
       visible={open}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
        <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay} >
-        <View style={styles.container}>
+        <View style={styles.container} ref={modalRef as any}>
             <View style={styles.EloKo}>
-        <Text style={styles.username}>EloKo Identity</Text>
+        <Text style={styles.username}>EloKo Card</Text>
          
           </View>
           <View style={styles.header}>
@@ -82,7 +123,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           </View>
 
           {user.bio && (
-            <View style={styles.bioContainer}>
+            <View style={styles.bioContainer} >
               <Text style={styles.bioTitle}>About Me</Text>
               <Text style={styles.bioText}>{user.bio}</Text>
             </View>
@@ -90,9 +131,18 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
 
           <View style={styles.infoContainer}>
             <FontAwesome6 name="calendar-day" size={24} color="gold" style={styles.infoicon} />
-            <Text style={styles.infoText}>Member Since: {formatDate(user.created_at)}</Text>
+            <Text style={[styles.infoText,{fontWeight:'400'}]}>Member Since: {formatDate(user.created_at)}</Text>
           </View>
+
         </View>
+        {user._id===_id && (<TouchableOpacity style={[{flexDirection:'row',marginTop:10, borderColor:'white', borderWidth:1, padding:10
+          , borderRadius:20, borderStyle:'dashed'
+        }]} onPress={captureModal}>
+          <Feather name="share" size={20} color="#635acc" style={[{marginRight:10}]} />
+        <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
+          fontSize:15, 
+        }]}>Share as image</Text>
+        </TouchableOpacity>)}
       </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -104,7 +154,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.8)',
   },
   container: {
     width: SCREEN_WIDTH - 70,

@@ -17,12 +17,13 @@ const FolderIcon = ({ folderFiles }) => {
   };
 
   // Limit to 6 items for the folder icon view
-  const displayedFiles = folderFiles.slice(0, 6);
+  const displayedFiles = folderFiles.slice(0, 9);
 
   return (
     <View style={styles.folderIcon}>
       <View style={styles.gridContainer}>
         {displayedFiles.map((file, index) => (
+          
           <View key={index} style={styles.gridItem}>
             {getFileIcon(file)}
           </View>

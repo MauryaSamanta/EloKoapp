@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     elevation: 7,
     padding: 16,
-    position: 'relative',
+    //position: 'relative',
   },
   cardContent: {
     flexDirection: 'row',

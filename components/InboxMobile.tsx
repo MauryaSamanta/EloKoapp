@@ -8,10 +8,14 @@ import SearchIcon from 'react-native-vector-icons/MaterialIcons';
 import { Chat } from '@/types'; // Adjust the import path as needed
 import { Member } from '@/types';
 import { themeSettings } from '../constants/Colors';
-
+import { useNavigation } from '@react-navigation/native';
+import {  NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types'; 
 const colors = themeSettings("dark");
 interface InboxMobileProps {
   // Define any props here if needed
+  setmainchats:(chat:Chat[])=>void;
+
 }
 
 interface InboxMobileState {
@@ -23,9 +27,15 @@ interface InboxMobileState {
   searchQuery: string;
 }
 
+type NavigationType = NavigationProp<RootStackParamList>;
+type ChatNavProp = {
+  navigate: (screen: string, params?: any) => void;
+};
 
 
-const InboxMobile: React.FC<InboxMobileProps> = () => {
+
+const InboxMobile: React.FC<InboxMobileProps> = ({setmainchats}) => {
+  
   const [chats, setChats] = useState<Chat[]>([]);
   const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
   const userId = useSelector((state: { auth: { user: { _id: string } } }) => state.auth.user._id);
@@ -33,7 +43,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
   const [showReq, setShowReq] = useState<boolean>(false);
   const [chat, setChat] = useState<Chat | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-
+  const navigationchat = useNavigation<ChatNavProp>();
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -42,6 +52,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
         });
         const data = await response.json();
         setChats(data.chats || []);
+        setmainchats(chats);
         setFilteredChats(data.chats || []);
       } catch (error) {
         console.error('Error fetching chats:', error);
@@ -49,7 +60,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
     };
 
     fetchChats();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     const filtered = chats.filter(chat =>
@@ -65,7 +76,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Button
           icon={() => <AddIcon name="add" size={24} color="white" />}
           mode="contained"
@@ -82,7 +93,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
         >
           Friend Requests
         </Button>
-      </View>
+      </View> */}
 
       <TextInput
         placeholder="Search chats"
@@ -98,7 +109,13 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
         data={filteredChats}
         keyExtractor={item => item._id}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => setChat(item)} style={styles.listItem}>
+          <TouchableOpacity onPress={() => {setChat(item);
+            const chatId=item._id;
+            const friendId=item.members.find(member=>member?._id.toString()!==userId)?._id
+            const friendName=item?.members.find(member => member._id.toString() !== userId)?.username
+            const friendAvatar=item?.members.find(member => member._id.toString() !== userId)?.avatar_url
+            navigationchat.navigate("MiniZone",{chatId,friendId,friendName, friendAvatar});
+          }} style={styles.listItem}>
             <Avatar.Image size={50} source={{ uri: item.members.find(member => member._id.toString() !== userId)?.avatar_url }} style={styles.avatar} />
             <View style={styles.textContainer}>
               <Text style={styles.username}>{item.members.find(member => member._id.toString() !== userId)?.username}</Text>
@@ -108,7 +125,7 @@ const InboxMobile: React.FC<InboxMobileProps> = () => {
         )}
         ListEmptyComponent={<Text style={styles.emptyText}>{searchQuery ? 'You have no friends with such username.' : 'No recent chats. Start a conversation!'}</Text>}
       />
-
+    
     </View>
   );
 };

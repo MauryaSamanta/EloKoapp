@@ -39,6 +39,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
   const [folderupload,setfolderupload]=useState(false);
   const inputRef = useRef(null);
   const [files,setfiles]=useState([]);
+  const [foldername,setfoldername]=useState('');
+  const [isTyping,setisTyping]=useState(false);
+  const typingTimeoutRef=useRef();
   const handleclosecloud=()=>{
     setcloud(false);
   }
@@ -50,12 +53,15 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
     
   },[tag])
   useEffect(()=>{
+    //console.log(files);
+  },[folderupload])
+  useEffect(()=>{
     const getuuid=()=>{
       setcurrentuuid(uuid.v4());
       //console.log(currentuuid);
     }
     getuuid();
-  },[sharefile]);
+  },[sharefile, files]);
   const selectFiles=async()=>{
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -79,8 +85,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
     }
   }
   const handleSend = async() => {
-    if(!sharefile || sharefile?.cloud)
-    {let newMessage = {
+    if(!sharefile || sharefile?.cloud )
+    { if(files.length===0)
+      {let newMessage = {
       text: message,
       senderName: username,
       senderAvatar: avatar_url,
@@ -96,11 +103,13 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
     newMessage={...newMessage, name_folder:sharefile?.name};
     setsharefile(undefined);
     setShowMenu(false);
-    //console.log(newMessage);
+    //console.log("Printing the first method");
     socket.emit('sendMessage', newMessage);
     setMessage('');}
+  
+  }
     else if(sharefile && sharefile.uri && sharefile.mimeType && sharefile.name){
-      console.log("hello");
+      console.log("sending file");
       let newMessage={
         text:message,
         senderName:username,
@@ -147,14 +156,65 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       }
       
     }
+    //console.log("hellooo");
+    if(foldername){
+      let newMessage={
+        text:message,
+        senderName:username,
+        senderAvatar:avatar_url,
+        sender_id:_id,
+        name_folder:foldername,
+        //filesarray:files,
+        zone:zone,
+        qube:qube,
+        uuid:currentuuid
+      };
+      setmessages((prevmessages)=>[...prevmessages,newMessage]);
+      setShowMenu(false);
+      setfiles([]);
+      //console.log(files);
+
+      setfoldername('');
+      const formData=new FormData();
+      formData.append("text", message);
+      formData.append("senderName", username);
+      formData.append("senderAvatar", avatar_url);
+      formData.append("sender_id", _id);
+      files.forEach((file)=>{
+       
+      formData.append("files", file);});
+      formData.append("foldername", foldername);
+      formData.append("zone", zone);
+      formData.append("qube",qube);
+      formData.append("uuid",currentuuid);
+     
+      //console.log(JSON.stringify(formData));
+      try {
+        const result = await fetch(`https://surf-jtn5.onrender.com/message/folder`, {
+          method: "POST",
+            headers: { "Content-Type":"multipart/form-data" },
+          body: formData,
+        });
+        const data=await result.json();
+        console.log(data);
+      } catch (error) {
+        console.log("error sending folder:",error);
+      }
+    }
     
     
   };
-
+  
   const toggleMenu = () => {
     setShowMenu(!showMenu);
     if(sharefile)
       setsharefile(undefined);
+    if(filetoshare)
+      setfiletoshare(undefined);
+    if(foldername)
+      setfoldername('');
+    if(files.length>0)
+      setfiles([]);
   };
 
   const handlesharefromcloud=(file)=>{
@@ -169,6 +229,29 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
     setcloud(false);
     console.log(file);
     //console.log(!sharefile);
+  }
+
+  const handleclosefolderdialog=()=>{
+    //console.log(files[0]);
+    setfolderupload(false);
+    
+  }
+
+  const handletyping=(e)=>{
+    setMessage(e);
+    if (!isTyping) {
+      setisTyping(true);
+      socket.emit('StartType', { sender_name: username, qube, zone });
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setisTyping(false);
+      socket.emit('StopType', { sender_name: username, qube, zone });
+    }, 1000); // 3 seconds of inactivity
   }
 
   return (
@@ -190,7 +273,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
         placeholderTextColor="#aaa"
         value={message}
         multiline
-        onChangeText={setMessage}
+        onChangeText={handletyping}
         
       />
       {!message.trim() && (
@@ -206,7 +289,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       <MaterialIcons name="emoji-emotions" size={24} color="white" />
       </TouchableOpacity></>):(
         <View style={styles.menu}>
-          {!sharefile?(<>
+          {!sharefile && !foldername?(<>
             <TouchableOpacity style={styles.menuItem} onPress={() => {setcloud(true)}}>
          <Entypo name="thunder-cloud" size={19} color="white" />
          <Text style={styles.menuText}>Cloud</Text>
@@ -225,28 +308,36 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
           <Text style={styles.menuText}>Video</Text>
         </TouchableOpacity>
         </>):(<View>
-        {sharefile.name.endsWith('jpeg') || sharefile.name.endsWith('png') || sharefile.name.endsWith('jpg')?
+        {sharefile?.name?.endsWith('jpeg') || sharefile?.name?.endsWith('png') || sharefile?.name?.endsWith('jpg')?
         ( <Image source={{uri:sharefile.uri}}  style={[{width:'100%', height:240,marginRight:250, borderRadius:20}]}/>
-        ):( 
+        ):sharefile?.name?.endsWith('pdf') && ( 
         <Icon name="document-outline" size={30} color="red" style={[{textAlign:'center',marginRight:200, width:'100%'}]}/>
         )}
-        <Text style={[{color:'white', 
+        
+      {foldername || sharefile?.folder && (<FontAwesome name="folder-open" size={30} color="orange" style={[{textAlign:'center',marginRight:200, width:'100%', alignContent:'center'}]}/>)}
+       {sharefile && ( <Text style={[{color:'white', 
            marginLeft:20,
            marginTop:10, 
            fontSize:10,
            textAlign:'center'
-           }]}>{sharefile.name}</Text>
-           
+           }]}>{sharefile.name}</Text>)}
+            {foldername && ( <Text style={[{color:'white', 
+           marginLeft:20,
+           marginTop:10, 
+           fontSize:10,
+           textAlign:'center'
+           }]}>{foldername}</Text>)}
+          
         </View>)}
       </View>
       )}
 
       {/* Send Button */}
-      <TouchableOpacity onPress={()=>{if(message.trim() || sharefile || filetoshare)handleSend();}} style={styles.sendButton}>
+      <TouchableOpacity onPress={()=>{if(message.trim() || sharefile || filetoshare || foldername)handleSend();}} style={styles.sendButton}>
         <Icon name="send" size={28} color="#fff" />
       </TouchableOpacity>
       <CloudDialog visible={cloud} onClose={handleclosecloud} handlesharefromcloud={handlesharefromcloud}/>
-      <FolderUploadDialog visible={folderupload} onClose={()=>setfolderupload(false)} setFiles={setfiles}/>
+      <FolderUploadDialog visible={folderupload} onClose={()=>handleclosefolderdialog()} setFiles={setfiles} setNameFolder={setfoldername}/>
     </View>
   );
 };
