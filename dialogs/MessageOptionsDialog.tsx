@@ -4,6 +4,8 @@ import { MaterialIcons } from '@expo/vector-icons'; // Using MaterialIcons for i
 import { Message } from '@/types';
 import ChatItemDialog from '@/components/ChatItemDialog';
 import { useSelector } from 'react-redux';
+import * as Clipboard from 'expo-clipboard';
+
 interface MessageOptionsDialogProps {
   visible: boolean;
   onClose: () => void;
@@ -50,6 +52,26 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
             console.error('Error saving file:', error);
           }
     }
+    const deletemsg=async()=>{
+      let messageid=message._id;
+      console.log(message._id);
+      onClose();
+      try {
+        const response=await fetch(`https://surf-jtn5.onrender.com/message/${message._id}`,{
+          method:"DELETE"
+        });
+        //console.log(response);
+       
+        
+      } catch (error) {
+        
+      }
+    }
+
+    const handleCopyToClipboard = async() => {
+
+      await Clipboard.setStringAsync(message.text||'');
+    };
 
   return (
     <Modal
@@ -59,7 +81,7 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
       onRequestClose={()=>{onClose}}
     >
       <View style={styles.overlay}>
-        <ChatItemDialog message={message} isOwnMessage={message.sender_id===_id}/>
+        <ChatItemDialog message={message} isOwnMessage={message.sender_id._id===_id || message.sender_id===_id}/>
         <View style={styles.dialogBox}>
           {/* Save to My Library */}
        {message.file ? ( <TouchableOpacity style={styles.button} onPress={saveFile}
@@ -81,7 +103,7 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
               <MaterialIcons name="reply" size={24} color="#635acc" style={styles.icon} />
               <Text style={styles.buttonText}>Reply</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button,{marginTop:2,borderTopRightRadius:0,borderTopLeftRadius:0}]} //onPress={}
+            <TouchableOpacity style={[styles.button,{marginTop:2,borderTopRightRadius:0,borderTopLeftRadius:0}]} onPress={handleCopyToClipboard}
             >
               <MaterialIcons name="content-copy" size={24} color="#635acc" style={styles.icon} />
               <Text style={styles.buttonText}>Copy Message</Text>
@@ -89,10 +111,10 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
           </View>
 
           {/* Delete Message */}
-          {isown && (<TouchableOpacity style={[styles.button, styles.deleteButton]} //onPress={onDelete}
+          {isown && (<TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={deletemsg}
           >
             <MaterialIcons name="delete" size={24} color="#ff4444" style={styles.icon} />
-            <Text style={[styles.buttonText, styles.deleteText]}>Delete Message</Text>
+            <Text style={[styles.buttonText, styles.deleteText]} >Delete Message</Text>
           </TouchableOpacity>)}
 
           {/* Close Button */}

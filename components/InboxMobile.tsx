@@ -100,7 +100,7 @@ const InboxMobile: React.FC<InboxMobileProps> = ({setmainchats}) => {
         value={searchQuery}
         onChangeText={setSearchQuery}
         style={styles.searchInput}
-        placeholderTextColor='#fff'
+        placeholderTextColor='#616161'
       />
 
       <Text style={styles.title}>Conversations</Text>
@@ -111,10 +111,11 @@ const InboxMobile: React.FC<InboxMobileProps> = ({setmainchats}) => {
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => {setChat(item);
             const chatId=item._id;
+            const members=item.members;
             const friendId=item.members.find(member=>member?._id.toString()!==userId)?._id
             const friendName=item?.members.find(member => member._id.toString() !== userId)?.username
             const friendAvatar=item?.members.find(member => member._id.toString() !== userId)?.avatar_url
-            navigationchat.navigate("MiniZone",{chatId,friendId,friendName, friendAvatar});
+            navigationchat.navigate("MiniZone",{chatId,friendId,friendName, friendAvatar, members});
           }} style={styles.listItem}>
             <Avatar.Image size={50} source={{ uri: item.members.find(member => member._id.toString() !== userId)?.avatar_url }} style={styles.avatar} />
             <View style={styles.textContainer}>
@@ -156,6 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     padding: 8,
     color: '#fff',
+    paddingLeft:20
   },
   title: {
     fontSize: 20,

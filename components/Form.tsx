@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootStackParamList } from '../types'; // Assuming you have types defined
 import CircularProgress from 'react-native-circular-progress';
 import { setlogin } from '../app/store/authSlice';
-
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { themeSettings } from "../constants/Colors";
 const colors = themeSettings("dark");
 type NavigationType = NavigationProp<RootStackParamList>;
@@ -153,12 +153,20 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
      
       <TouchableOpacity
         style={styles.button}
-        onPress={handleFormSubmit}
+        onPress={()=>{if(!loading) handleFormSubmit();}}
         disabled={pageType === "register" ? taken : false}
       >
-        <Text style={styles.buttonText}>
+        {!loading?(<Text style={styles.buttonText}>
           {pageType === "login" ? "LOGIN" : "REGISTER"}
-        </Text>
+        </Text>):(<AnimatedCircularProgress
+          size={30}
+          width={4}
+          fill={75}
+          tintColor="white"
+          onAnimationComplete={() => console.log('')}
+          backgroundColor="#4D4599"
+          rotation={0}
+          lineCap="round" />)}
       </TouchableOpacity>
     
       </View>

@@ -131,7 +131,7 @@ const CreateHubDialog: React.FC<CreateHubDialogProps> = ({ open, onClose, userId
                   value={hubName}
                   onChangeText={setHubName}
                 />
-                <Text style={styles.helperText}>This is the name by which people will know the hub.</Text>
+                <Text style={styles.helperText}>Give your Hub a name</Text>
               </View>
             )}
             {step === 2 && (
@@ -145,7 +145,7 @@ const CreateHubDialog: React.FC<CreateHubDialogProps> = ({ open, onClose, userId
                   value={hubDescription}
                   onChangeText={setHubDescription}
                 />
-                <Text style={styles.helperText}>Provide a brief description of the hub.</Text>
+                <Text style={styles.helperText}>Give it a description to set the stage</Text>
               </View>
             )}
             {step === 3 && (
@@ -155,7 +155,7 @@ const CreateHubDialog: React.FC<CreateHubDialogProps> = ({ open, onClose, userId
                   {hubAvatar ? (
                     <Image source={{ uri: hubAvatar }} style={styles.avatarImage} />
                   ) : (
-                    <Text>Click to select an image</Text>
+                    <Text style={[{color:'white'}]}>Click to select your Hub's first impression</Text>
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSkip}>
@@ -194,6 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
+    
   },
   dialog: {
     width: '90%',

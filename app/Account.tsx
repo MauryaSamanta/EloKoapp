@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, Animated, Easing, TouchableWithoutFeedback } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, Animated, Easing, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import { Avatar, IconButton } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -14,11 +14,23 @@ const Account = () => {
   const [newUsername, setNewUsername] = useState(user.username);
   //const [dataforavatar,setdata]=useState('');
   const [isEditingBio, setIsEditingBio] = useState(false);
+  const [changingcolor,setchangingcolor]=useState(false);
   const [newBio, setNewBio] = useState(user.bio || '');
   const [bioHeight] = useState(new Animated.Value(60)); // Initial button height
   const [showBioInput, setShowBioInput] = useState(false);
   const dispatch = useDispatch();
-  
+  const [colourHeight]=useState(new Animated.Value(60));
+  const [selectedColor,setSelectedColor]=useState<any>(user.color || '');
+  const colors = [
+  '#1E90FF', '#2F4F4F', '#4682B4', '#556B2F', '#8B4513', 
+  '#D2691E', '#B22222', '#5F9EA0', '#6A5ACD', '#CD5C5C', 
+  '#8A2BE2', '#696969',
+
+  // Womanly or Neutral colors
+  '#FF69B4', '#FFD700', '#FFB6C1', '#7FFFD4', '#FF6347', 
+  '#DAA520', '#BA55D3', '#FFE4C4', '#F08080', '#ADFF2F', 
+  '#00FA9A', '#F0E68C',
+  ];
   const handleCloseCard = () => {
     setShowCard(false);
   };
@@ -55,13 +67,24 @@ const Account = () => {
     }).start();
     
   };
+  const handleeditcolor = () => {
+    // setIsEditingBio(true);
+    setchangingcolor(true);
+    Animated.timing(colourHeight, {
+      toValue: 150, // Expanded height
+      duration: 300,
+      easing: Easing.ease,
+      useNativeDriver: false,
+    }).start();
+    
+  };
 
   const handleSaveBio = async() => {
     setIsEditingBio(false);
     setShowBioInput(false);
     Animated.timing(bioHeight, {
       toValue: 60, // Collapse back to initial height
-      duration: 300,
+      duration: 230,
       easing: Easing.ease,
       useNativeDriver: false,
     }).start();
@@ -80,12 +103,42 @@ const Account = () => {
     }
   };
 
+  const handleclosecolor=async()=>{
+    setchangingcolor(false);
+    Animated.timing(colourHeight, {
+      toValue: 60, // Collapse back to initial height
+      duration: 230,
+      easing: Easing.ease,
+      useNativeDriver: false,
+    }).start();
+
+  }
+  const handlesavecolor=async(color:string)=>{
+    const data={color:color};
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/users/${user._id}/color`,{
+        method:'PATCH',
+        headers: { "Content-Type": "application/json" },
+        body:JSON.stringify(data)
+      });
+      const savedUser=await response.json();
+      dispatch(setlogin({user:savedUser,token:token}))
+      //console.log(savedUser);
+    } catch (error) {
+      
+    }
+  }
+
+
   const handleOutsideClick = () => {
     if (isEditingBio) {
       handleSaveBio();
     }
     if(isEditingUsername){
       handleSaveUsername();
+    }
+    if(changingcolor){
+      handleclosecolor();
     }
    
   };
@@ -184,7 +237,7 @@ const Account = () => {
             />
           ) : (
             <>
-              <Text style={styles.username} onPress={handleEditUsername}>{newUsername}</Text>
+              <Text style={[styles.username,{color:user.color||'#fff'}]} onPress={handleEditUsername}>{newUsername}</Text>
               <IconButton
                 icon="pencil"
                 size={20}
@@ -198,7 +251,7 @@ const Account = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={[styles.button,styles.buttonContent]} onPress={() => setShowCard(true)}>
             <Image source={require('../assets/images/flag.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={[styles.buttonText,{fontWeight:showCard?'bold':undefined}]}>View EloKo Identity</Text>
+            <Text style={[styles.buttonText,{fontWeight:showCard?'bold':undefined}]}>View EloKo Card</Text>
           </TouchableOpacity>
 
           {/* Edit Bio button with animated height */}
@@ -223,10 +276,31 @@ const Account = () => {
             )}
           </Animated.View>
           <View>
-          <TouchableOpacity style={[styles.button,styles.buttonContent]} >
+            <Animated.View style={[styles.button,{height:colourHeight}]}>
+          <TouchableOpacity  onPress={handleeditcolor}>
+            <View style={styles.buttonContent}>
             <Image source={require('../assets/images/color-palette.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={[styles.buttonText,{fontWeight:showCard?'bold':undefined}]}>Your Colour</Text>
+            <Text style={[styles.buttonText,{fontWeight:changingcolor?'bold':undefined}]}>Your Colour</Text>
+            </View>
           </TouchableOpacity>
+          <ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  contentContainerStyle={styles.colorPalette}
+>
+  {colors.map((color, index) => (
+    <TouchableOpacity
+      key={index}
+      style={[
+        styles.colorCircle,
+        { backgroundColor: color || 'transparent' }, // "null" as transparent
+        selectedColor === color ? styles.selectedColor : null // Highlight selected color
+      ]}
+      onPress={() => {setSelectedColor(color); handlesavecolor(color);}} // Handle color selection
+    />
+  ))}
+</ScrollView>
+          </Animated.View>
           <TouchableOpacity style={[styles.button, styles.deleteButton]}>
             <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete Account</Text>
           </TouchableOpacity>
@@ -272,7 +346,7 @@ const styles = StyleSheet.create({
     marginLeft: 40,
   },
   username: {
-    color: '#fff',
+    //color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -319,6 +393,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     
+  },
+  colorPalette: {
+    paddingVertical: 10, // Add some vertical space
+    paddingHorizontal: 5, // Add horizontal space for swiping
+  },
+  colorCircle: {
+    width: 40, // Size of the color circles
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 5, // Space between circles
+    borderWidth: 2, // Border to highlight selection
+    borderColor: 'transparent', // Default border color is transparent
+  },
+  selectedColor: {
+    borderColor: '#fff', // White border for selected color
+    borderWidth: 3,
   },
   deleteButton: {
     backgroundColor: '#e53935',

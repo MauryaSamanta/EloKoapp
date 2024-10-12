@@ -70,7 +70,8 @@ const HubHomeScreen: React.FC = () => {
   const [avatar,setavatar]=useState(avatar_url);
   const [banner,setbanner]=useState(banner_url);
   const [demon,setdemon]=useState(demonym);
-  const drawerwidth=selectedQube?EXPANDED_DRAWER_WIDTH:DRAWER_WIDTH;
+  const drawerwidth=//selectedQube?EXPANDED_DRAWER_WIDTH:
+  DRAWER_WIDTH;
   //console.log(selectedQube);
   useEffect(()=>{
     const fetchMembers=async()=>{
@@ -143,6 +144,8 @@ const fetchZones=async(selectedQube:Qube)=>{
     })
     const data=await response.json();
     setZones(data.zones);
+
+    setSelectedZone(data.zones[0]);
     //setSelectedZone(data.zones[0]);
     //joinZone(data.zones[0]._id);
     console.log(zones);
@@ -207,14 +210,14 @@ const fetchZones=async(selectedQube:Qube)=>{
         <View style={styles.qubesplace}>
         <Text style={styles.heading}>Qubes</Text>
         
-       {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);
-        setSelectedZone(null);fetchZones(qube);setselectedQube(qube);}} selectedQube={selectedQube} setselectedQube={setselectedQube}/>))}
+       {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);setSelectedZone(null);
+        fetchZones(qube);setselectedQube(qube);}} selectedQube={selectedQube} setselectedQube={setselectedQube}/>))}
         <TouchableOpacity style={[{marginTop:20}]} onPress={()=>setqubediag(true)}>
         <AntDesign name="pluscircleo" size={34} color="white" />
         </TouchableOpacity>
        </View>
         </View>
-       {selectedQube && ( <View style={styles.zonesplace}>
+       {/* {selectedQube && ( <View style={styles.zonesplace}>
         <View style={[{flexDirection:'row', justifyContent:'space-between'}]}>
         <Text style={styles.heading}>Zones</Text>
         <Text style={[{borderColor:'white', color:'white', fontSize:20, borderWidth:1, borderStyle:'dashed', borderRadius:30,
@@ -228,7 +231,7 @@ const fetchZones=async(selectedQube:Qube)=>{
           </TouchableOpacity>
           ))}
           
-        </View>)}
+        </View>)} */}
         </View>
       </Animated.View>
 
@@ -236,10 +239,12 @@ const fetchZones=async(selectedQube:Qube)=>{
       <View style={styles.mainContent}>
         <View style={styles.appBar}>
           {/* Menu Button (left) */}
-          <TouchableOpacity onPress={handleDrawerToggle} style={styles.gap}>
+          <TouchableOpacity onPress={handleDrawerToggle} >
             <Ionicons name="menu" size={28} color="white" />
           </TouchableOpacity>
+          <View style={styles.gap}>
 
+          </View>
           {/* Open Library Button (center) */}
           <TouchableOpacity onPress={() => {
             const data={hub:hubId, wallpaper:wall, hubname:hubname, setwall:setwall};
@@ -262,7 +267,7 @@ const fetchZones=async(selectedQube:Qube)=>{
         <View style={styles.content}>
          {!selectedZone?( <HubOverviewPage name={hubname} description={desc} avatar_url={avatar}
                            banner_url={banner} demonym={demon} members={members} owner={owner} hubId={hubId}/>):(
-                            <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId}/>
+                            <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId} members={members} hubname={name}/>
                            )}
         </View>
         <CreateQubeDialog visible={qubediag} onClose={()=>setqubediag(false)} setQubes={setQubes} hub={hubId}/>

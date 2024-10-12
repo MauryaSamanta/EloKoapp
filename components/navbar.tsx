@@ -7,6 +7,7 @@ import { setlogout } from '@/app/store/authSlice';
 import { themeSettings } from '../constants/Colors';
 import CreateHubDialog from '@/dialogs/CreateHubDialog';
 import { Chat } from '@/types';
+
 const colors = themeSettings("dark");
 interface NavbarProps {
   hub: boolean;
@@ -45,14 +46,14 @@ const Navbar = ({hub,setmainchats}: NavbarProps) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity // onPress={() => navigation.navigate('home')}
+      <View // onPress={() => navigation.navigate('home')}
         style={styles.logoContainer}
       >
         <Image
           source={require('../assets/images/EloKoMainLogo.png')} // Update with the correct path
           style={styles.logo}
         />
-      </TouchableOpacity>
+      </View>
 
       <View style={styles.rightContainer}>
        {hub? ( <Button
@@ -78,12 +79,14 @@ const Navbar = ({hub,setmainchats}: NavbarProps) => {
         <TouchableOpacity //onPress={handleLogout} 
         style={styles.avatarContainer}
         onPress={()=>navigationacc.navigate('Account')}>
-          <Avatar
-            source={{ uri: avatar }}
+          {avatar?(<Avatar
+            source={{ uri: avatar  }}
             rounded
             size="medium"
             containerStyle={styles.avatar}
-          />
+          />):(
+            <Image source={require('../assets/images/user-profile.png')} style={[{height:50,width:50}]}/>
+          )}
         </TouchableOpacity>
       </View>
     </View>

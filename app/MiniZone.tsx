@@ -18,6 +18,7 @@ interface ChatScreenParams {
   friendId: string;
   friendName: string;
   friendAvatar: string;
+  members:any;
 }
 type NavigationType = NavigationProp<RootStackParamList>;
 type LibraryNavProp = {
@@ -29,7 +30,7 @@ type LibraryNavProp = {
 const socket = io('https://surf-jtn5.onrender.com');
 const MiniZone: React.FC = () => {
     const route=useRoute();
-  const { chatId, friendId, friendName, friendAvatar } = route.params as ChatScreenParams;
+  const { chatId, friendId, friendName, friendAvatar, members } = route.params as ChatScreenParams;
   const [messages,setmessages]=useState<Message[]>([]);
   const [message,setmessage]=useState('');
   const [chat,setchat]=useState<Message>();
@@ -39,6 +40,7 @@ const MiniZone: React.FC = () => {
   const [userTyping,setuserTyping]=useState();
   const [type,settype]=useState(false);
   const navigationlibrary = useNavigation<LibraryNavProp>();
+  
   const joinChat=async()=>{
     socket.emit('joinZone',chatId);
     try {
@@ -128,7 +130,7 @@ const MiniZone: React.FC = () => {
             borderColor:'#635acc', borderRadius:30, fontSize:30, color:'#635acc', fontWeight:'bold'
          }]}>Drop your first text</Text>)}
           {messages?.map((message:Message, index) => (
-            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
+            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id._id===_id||message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
             setmessage={setmessage}/>
           ))}
         </View>
@@ -136,7 +138,7 @@ const MiniZone: React.FC = () => {
       {userTyping && (<TypingAnimation userTyping={userTyping} username={username}/>)}
       {/* Message Input Area */}
       <View>
-        <MessageInputArea zone={chatId} qube={null} setmessages={setmessages} messagetag={''}/>
+        <MessageInputArea zone={chatId} qube={null} setmessages={setmessages} messagetag={''} members={members}/>
       </View>
       {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={chatId}/>)}
     </View>

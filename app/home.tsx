@@ -32,7 +32,8 @@ function MyHubsScreen() {
         body:JSON.stringify(data)
       });
       const val=await response.json();
-      dispatch(setlogin({user:user,token:token}))
+      console.log(val);
+      dispatch(setlogin({user:val,token:token}))
 
     } catch (error) {
       console.log(error);

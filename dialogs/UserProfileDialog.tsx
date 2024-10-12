@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback, Alert,Share } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback, Alert } from 'react-native';
 import Svg, { ClipPath, Polygon, Rect, Defs, Image as SvgImage } from 'react-native-svg';
 import { Member } from '@/types';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -8,9 +8,14 @@ import { useSelector } from 'react-redux';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
-import * as Permissions from 'expo-permissions';
+//import * as Permissions from 'expo-permissions';
 import * as Sharing from 'expo-sharing';
 import * as Linking from 'expo-linking';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import Share from 'react-native-share';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import AntDesign from '@expo/vector-icons/AntDesign';
+//import { Share } from 'react-native';
 //import Share from 'react-native-share';
 interface UserProfileDialogProps {
   open: boolean;
@@ -72,7 +77,11 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
   if (!user) return null;
   const {_id}=useSelector((state:any)=>state.auth.user);
   const modalRef = useRef(); // Reference for capturing the modal content
+  const [loading,setloading]=useState(false);
+  const [friendreq,setfriendreq]=useState(false);
+  const [friend,setfriend]=useState(false);
   const captureModal = async () => {
+    setloading(true);
     try {
       // Capture the view and save as a JPEG
       const uri = await captureRef(modalRef, {
@@ -85,23 +94,74 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
         Alert.alert('Sharing not available', 'Sharing is not available on this device.');
         return;
       }
-      const message = "Check out my EloKo Card!";
+      const message = "Check out my EloKo Card! Open the app here: https://www.eloko.com/home";
       // Share the image
-      await Sharing.shareAsync(uri,{
-        dialogTitle:message
-      });
-      // Share.open({message:message,url:uri}).then((res) => {
-      //   console.log(res);
-      // })
-      // .catch((err) => {
-      //   err && console.log(err);
+
+      // await Sharing.shareAsync(uri,{
+      //   dialogTitle:message
       // });
-  
+      // await Share.share({
+      //   title:'hello',
+      //   url:uri,
+      //   message:'greate photo'
+      // })
+
+      Share.open({message:message,url:uri}).then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        err && console.log(err);
+      });
+      setloading(false);
       
     } catch (error) {
       console.error('Failed to capture modal content:', error);
     }
   };
+
+  const sendRequest=async()=>{
+    setloading(true);
+    const val={senderid:_id,recname:user.username};
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/request/create`,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(val)
+      });
+      const data=await response.json();
+      if(data)
+        {setloading(false);
+          setfriendreq(true);
+        }
+      // if(data==='User doesnot exist')
+      //   setexist(false);
+      // else if(data==='Friend')
+      //   setfriend(true);
+      // else
+      // setUsername('');
+  } catch (error) {
+      console.log(error);
+  }
+  }
+
+  useEffect(()=>{
+    const getfriendstat=async()=>
+    { console.log('hello');
+      const response=await fetch(`https://surf-jtn5.onrender.com/request/${_id}/${user._id}`,{
+      method:'GET'
+    });
+    const status=await response.json();
+  
+    if(status==='friend')
+      setfriend(true);
+    else if(status==='sent')
+      setfriendreq(true);
+    else 
+      setfriendreq(false);
+}
+   getfriendstat();
+  },[open])
+
   return (
     <Modal
       visible={open}
@@ -135,14 +195,55 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           </View>
 
         </View>
-        {user._id===_id && (<TouchableOpacity style={[{flexDirection:'row',marginTop:10, borderColor:'white', borderWidth:1, padding:10
+        {user._id===_id ? (<TouchableOpacity style={[{flexDirection:'row',marginTop:10, borderColor:'white', borderWidth:1, padding:10
           , borderRadius:20, borderStyle:'dashed'
-        }]} onPress={captureModal}>
+        }]} onPress={()=>{if(!loading)captureModal()}}>
+          {!loading?(<>
           <Feather name="share" size={20} color="#635acc" style={[{marginRight:10}]} />
-        <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
+      <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
           fontSize:15, 
         }]}>Share as image</Text>
-        </TouchableOpacity>)}
+        </>):
+        (<AnimatedCircularProgress
+          size={30}
+          width={4}
+          fill={75}
+          tintColor="#635acc"
+          onAnimationComplete={() => console.log('')}
+          backgroundColor="#4D4599"
+          rotation={0}
+          lineCap="round" />)}
+        </TouchableOpacity>):(
+          <TouchableOpacity style={[{flexDirection:'row',marginTop:10, borderColor:'white', borderWidth:1, padding:10
+            , borderRadius:20, borderStyle:'dashed'
+          }]} onPress={()=>{if(!loading && !friendreq && !friend)sendRequest()}}>
+            {!loading && !friendreq && !friend?(<>
+            
+            <Ionicons name="person-add-sharp" size={20} color="#625acc" style={[{marginRight:10}]} />
+        <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
+            fontSize:15, 
+          }]}>Send Friend Request</Text>
+          </>):
+          loading && !friendreq?(<AnimatedCircularProgress
+            size={30}
+            width={4}
+            fill={75}
+            tintColor="#635acc"
+            onAnimationComplete={() => console.log('')}
+            backgroundColor="#4D4599"
+            rotation={0}
+            lineCap="round" />):friendreq && (
+              <>
+            
+            
+            <AntDesign name="Safety" size={20} color="#635acc" style={[{marginRight:10}]} />
+        <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
+            fontSize:15, 
+          }]}>Friend Request Sent</Text>
+          </>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
       </TouchableWithoutFeedback>
     </Modal>

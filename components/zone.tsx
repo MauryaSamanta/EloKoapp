@@ -21,6 +21,8 @@ interface ZoneScreenProps {
   selectedZone: Zone;
   selectedQube?:Qube;
   hubId?:string;
+  members?:any[];
+  hubname?:string;
  // handleOpenStoreDialog: () => void;
   //messages?: Message[]; // Messages is optional, default is an empty array
 }
@@ -28,7 +30,9 @@ const socket = io('https://surf-jtn5.onrender.com');
 const ZoneScreen: React.FC<ZoneScreenProps> = ({
   selectedZone,
   selectedQube,
-  hubId
+  hubId,
+  members,
+  hubname
   //handleOpenStoreDialog,
   //messages = [],
 }) => {
@@ -95,6 +99,12 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       );
       //console.log(message);
     });
+
+    socket.on('deleteMessage',(delmessage)=>{
+      setmessages((prevMessages) =>
+        prevMessages.filter((message) => message._id !== delmessage)
+      );
+    })
   },[])
 
   useEffect(() => {
@@ -110,7 +120,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       {/* Header Section */}
      
       <View style={[styles.header,{backgroundColor:'transparent'}]}>
-        <Text style={styles.zoneName}>{selectedZone?.name}</Text>
+        <Text style={styles.zoneName}>{selectedQube?.name}</Text>
 
         <TouchableOpacity style={styles.storeButton} onPress={opentagdialog}
         >
@@ -122,12 +132,12 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       {/* Scrollable Area */}
       <ScrollView contentContainerStyle={styles.scrollArea}  ref={scrollViewRef}>
         <View style={styles.messageContainer}>
-          <Text style={styles.welcomeText}>Welcome to the {selectedZone?.name} Zone</Text>
+          <Text style={styles.welcomeText}>Welcome to the {selectedQube?.name} Qube</Text>
           <Text style={styles.subText}>Talk with your Qube members here. We organize your files for you!</Text>
 
           {/* Messages */}
           {messages?.map((message:Message, index) => (
-            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
+            <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id._id===_id || message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
             setmessage={setmessage}/>
           ))}
           
@@ -137,7 +147,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       {userTyping && (<TypingAnimation userTyping={userTyping} username={username}/>)}
       <View >
       
-      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message}/>
+      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message} members={members} qubename={selectedQube?.name} hubname={hubname}/>
       {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={hubId}/>)}
       </View>
       

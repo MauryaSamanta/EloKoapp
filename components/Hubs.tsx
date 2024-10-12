@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, FlatList,Image, ImageBackground } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {  NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types'; 
-import { Avatar, Menu } from 'react-native-paper';
+import { Avatar, Menu, TextInput } from 'react-native-paper';
 import HexagonImage from './HexagonImage';
 import { io } from 'socket.io-client';
 import { Hub, HubsProps } from '../types'; // Import the types
 import { themeSettings } from '../constants/Colors';
-
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
 type NavigationType = NavigationProp<RootStackParamList>;
@@ -25,15 +25,17 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
   const navigation = useNavigation<NavigationType>();
   const navigationhub = useNavigation<HubsNavigationProp>();
   const bounceAnim = useRef(new Animated.Value(1)).current; // Animated value for scaling
-
+  const [hubsloading, sethubloading]=useState(false);
   useEffect(() => {
     const fetchHubs = async () => {
+      sethubloading(true);
       try {
         const response = await fetch(`https://surf-jtn5.onrender.com/hub`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
+        sethubloading(false);
         setHubs(data);
       } catch (error) {
         console.error('Error fetching hubs:', error);
@@ -115,8 +117,17 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
   };
 
   return (
-    <View style={styles.container}>
-      {hubs.length > 0 ? (
+    <View style={[styles.container,hubsloading && {justifyContent:'center', alignItems:'center'}]}>
+      {hubsloading && (<AnimatedCircularProgress
+          size={80}
+          width={6}
+          fill={75}
+          tintColor="#635acc"
+          onAnimationComplete={() => console.log('')}
+          backgroundColor="#454545"
+          rotation={0}
+          lineCap="round" />)}
+      {hubs.length > 0 && !hubsloading? (
         <FlatList
           data={hubs}
           renderItem={({ item }) => (
@@ -178,8 +189,27 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
           )}
           keyExtractor={(item) => item._id}
         />
-      ) : (
-        <></>
+      ) : hubs.length===0 && !hubsloading && (
+        
+        <ImageBackground source={require('../assets/images/hub.png')}
+         style={[{ justifyContent:'center',alignContent:'center'}]}
+          resizeMode="contain"
+         >
+         
+          <TextInput
+            style={[styles.hubcode]}
+            placeholder="Enter Hub Code"
+            placeholderTextColor="#aaa" 
+            autoFocus={false}
+          />
+          <View style={[{paddingHorizontal:120}]}>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Join Hub</Text>
+          </TouchableOpacity>
+          </View>
+          <Text style={[{ fontSize:40, color:'white', marginTop:300, fontWeight:500}]}>Join Hub using code or Build your own Hub</Text>
+          </ImageBackground>
+          
       )}
     </View>
   );
@@ -217,6 +247,37 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
+  },
+  hubcode:{
+    height: 50,
+    borderColor: '#635acc', // Use your primary color
+    //borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    
+    opacity:0.8,
+    color: "#f6f6f6",
+    backgroundColor: '#1D1D1D', // Slightly darker background for better contrast
+    
+  },
+  button: {
+    backgroundColor: colors.colors.primary.main,
+    paddingVertical: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    //width:100,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4, // For Android shadow
+  },
+  buttonText: {
+    color: colors.colors.background.default,
+    fontSize: 18,
+    fontWeight: '500',
   },
 });
 

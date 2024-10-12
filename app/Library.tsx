@@ -86,30 +86,14 @@ const Library: React.FC = () => {
       }
   }
   const addFiletoFolder=async(folder:string)=>{
+    setFiles(files.filter((file) => file._id !== dragfile?._id));
     try {
       const response=await fetch(`https://surf-jtn5.onrender.com/file/${dragfile?._id}/${folder}`,{
         method:"PATCH"
       });
       const file=await response.json();
       if (response.ok) {
-        // setFiles((prevFiles) =>
-        //   prevFiles.map((f) => {
-        //     if (f._id === folder) {
-        //       return {
-        //         ...f,
-        //         folder: [
-        //           ...f.folder,
-        //           {
-        //             file_name: dragfile?.file_name,
-        //             file_url: dragfile?.file_url,
-        //           },
-        //         ],
-        //       };
-        //     }
-        //     return f;
-        //   })
-        // );
-        setFiles(files.filter((file) => file._id !== dragfile?._id));
+        
         getFiles();
       }
     } catch (error) {
@@ -233,6 +217,7 @@ const Library: React.FC = () => {
   }, [ handleDrag]); // Re-run when files change
 
   const selectwall=async()=>{
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -240,7 +225,7 @@ const Library: React.FC = () => {
     });
     const formData=new FormData();
     if(result.assets)
-    formData.append("avatar",
+    {formData.append("avatar",
     {uri:result.assets[0].uri,
     type:result.assets[0].mimeType,
     name:result.assets[0].fileName
@@ -257,7 +242,9 @@ const Library: React.FC = () => {
       setwallpaper(data.wall_url);
     } catch (error) {
       console.log(error);
-    }
+    }}
+    else
+    return null;
   }
 
   return (

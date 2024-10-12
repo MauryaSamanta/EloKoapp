@@ -60,13 +60,14 @@ export interface Message {
     file_url: string;
   }[];
   name_folder?: string;
-  sender_id: string;
+  sender_id: any;
   zone_id: string;
   qube_id?: string;
   tags?: string;
   createdAt?: Date;
   updatedAt?: Date;
   uuid?:string;
+  color?:string;
 }
 
 export interface Zone {

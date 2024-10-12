@@ -7,6 +7,7 @@ import UserProfileDialog from '@/dialogs/UserProfileDialog';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Message, Member } from '@/types';
 import MessageDrawer from '@/drawers/MessageDrawer';
+import { useSelector } from 'react-redux';
 
 interface ChatItemProps {
   message: Message;
@@ -21,12 +22,13 @@ const { width } = Dimensions.get('window');
 const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat,setmessage }) => {
   const [user, setUser] = useState<Member>();
   const [showCard, setShowCard] = useState(false);
-  const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt } = message;
+  const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt, color } = message;
   const [bgcolor,setbgcolor]=useState('transparent');
-  
+  const userlog=useSelector((state:any)=>state.auth.user);
   const showUser = async () => {
-    try {
-      const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id}`, {
+    if(!isOwnMessage)
+    {try {
+      const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id._id || sender_id}`, {
         method: "GET"
       });
       const member = await response.json();
@@ -34,7 +36,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
       setShowCard(true);
     } catch (error) {
       console.error(error);
-    }
+    }}
   };
   const closeUser = () => {
     setShowCard(false);
@@ -77,8 +79,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
         <View style={[styles.header, isOwnMessage && { justifyContent: 'flex-end' }]}>
           {!isOwnMessage && (
             <>
-              <Avatar.Image size={40} source={{ uri: senderAvatar }} style={styles.avatar} />
-              <Text style={styles.senderName} onPress={showUser}>{senderName}</Text>
+              <Avatar.Image size={40} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.avatar} />
+              <Text style={[styles.senderName,{color:sender_id.color||color||'white'}]} onPress={showUser}>{sender_id.username || senderName}</Text>
              {createdAt ? ( <Text style={styles.timestamp}>{formatMessageTime(createdAt)}</Text>):(
                  <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>sending...</Text>
              )}
@@ -89,8 +91,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
              {createdAt ? ( <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>{formatMessageTime(createdAt)}</Text>):(
               <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>sending...</Text>
              )}
-              <Text style={styles.senderName}>{senderName}</Text>
-              <Avatar.Image size={30} source={{ uri: senderAvatar }} style={styles.ownAvatar} />
+              <Text style={[styles.senderName,{color:sender_id.color||color||'white'}]}>{sender_id.username || senderName}</Text>
+              <Avatar.Image size={30} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.ownAvatar} />
             </>
           )}
         </View>

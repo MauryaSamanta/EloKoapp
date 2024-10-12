@@ -68,7 +68,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
             value={folderName}
             onChangeText={handleFolderNameChange}
             style={styles.textInput}
-            placeholderTextColor={'#616161'}
+            placeholderTextColor='#616161'
           />
 
           <FlatList

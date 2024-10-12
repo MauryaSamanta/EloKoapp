@@ -99,7 +99,7 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
             <TouchableOpacity onPress={()=>invite()}>
             <Image source={require('../assets/images/plus.png')} style={{ width: 24, height: 24, marginLeft: -10 }} />
             </TouchableOpacity>
-            {code && (<AddMemberDialog visible={addmemberdialog} code={code} onClose={closeadddialog}/>)}
+            {code && (<AddMemberDialog visible={addmemberdialog} code={code} onClose={closeadddialog} hubname={name} hub_avatar={avatar_url} hub_banner={banner_url}/>)}
         </View>
       
     </View>

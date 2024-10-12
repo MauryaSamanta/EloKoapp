@@ -25,7 +25,7 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
   //const [drawer,setdrawer]=useState(false);
   const showUser = async () => {
     try {
-      const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id}`, {
+      const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id._id || sender_id}`, {
         method: "GET"
       });
       const member = await response.json();
@@ -76,8 +76,8 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
         <View style={[styles.header, isOwnMessage && { justifyContent: 'flex-end' }]}>
           {!isOwnMessage && (
             <>
-              <Avatar.Image size={40} source={{ uri: senderAvatar }} style={styles.avatar} />
-              <Text style={styles.senderName} onPress={showUser}>{senderName}</Text>
+              <Avatar.Image size={40} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.avatar} />
+              <Text style={styles.senderName} onPress={showUser}>{sender_id.username || senderName}</Text>
              {createdAt ? ( <Text style={styles.timestamp}>{formatMessageTime(createdAt)}</Text>):(
                 <AnimatedCircularProgress
                 size={20}
@@ -100,8 +100,8 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
               //onAnimationComplete={() => console.log('onAnimationComplete')}
               backgroundColor="#3d5875" />
              )}
-              <Text style={styles.senderName}>{senderName}</Text>
-              <Avatar.Image size={30} source={{ uri: senderAvatar }} style={styles.ownAvatar} />
+              <Text style={styles.senderName}>{sender_id.username || senderName}</Text>
+              <Avatar.Image size={30} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.ownAvatar} />
             </>
           )}
         </View>

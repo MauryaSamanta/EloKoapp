@@ -21,16 +21,18 @@ import * as FileSystem from 'expo-file-system';
 import uuid from 'react-native-uuid';
 import CloudDialog from '@/dialogs/CloudDialog';
 import FolderUploadDialog from '@/dialogs/FolderUploadDialog';
+import { Audio } from 'expo-av';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 const { width } = Dimensions.get('window');
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
 
-const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
+const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, hubname}) => {
   const [tag,settag]=useState(messagetag||'');
   const [message, setMessage] = useState(tag||'');
   console.log(message);
   const [showMenu, setShowMenu] = useState(false);
-  const {_id,username,avatar_url}=useSelector((state)=>state.auth.user);
+  const {_id,username,avatar_url,color}=useSelector((state)=>state.auth.user);
   const [filetoshare,setfiletoshare]=useState(null);
   const [sharefile,setsharefile]=useState(null);
   const [filedata,setfiledata]=useState('');
@@ -42,6 +44,8 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
   const [foldername,setfoldername]=useState('');
   const [isTyping,setisTyping]=useState(false);
   const typingTimeoutRef=useRef();
+  const [recording, setRecording] = useState(false);
+  
   const handleclosecloud=()=>{
     setcloud(false);
   }
@@ -97,7 +101,11 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       folder:sharefile?.folder,
       reactions: null,
       zone: zone,
-      qube:qube
+      qube:qube,
+      members:members,
+      qubename:qubename,
+      hubname:hubname,
+      color:color
     };
     if(sharefile?.cloud && sharefile?.folder)
     newMessage={...newMessage, name_folder:sharefile?.name};
@@ -119,7 +127,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
         file:sharefile.uri,
         zone:zone,
         qube:qube,
-        uuid:currentuuid
+        uuid:currentuuid,
+         qubename:qubename,
+       hubname:hubname
       };
       setmessages((prevmessages)=>[...prevmessages,newMessage]);
       setMessage('');
@@ -138,6 +148,12 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       formData.append("zone", zone);
       formData.append("qube",qube);
       formData.append("uuid",currentuuid);
+      formData.append("qubename",qubename);
+      formData.append("hubname",hubname);
+      members.forEach((member)=>{
+        formData.append("members",member);
+      });
+      formData.append("color",color);
       //setprogress(false);
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/file`, {
@@ -187,7 +203,11 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       formData.append("zone", zone);
       formData.append("qube",qube);
       formData.append("uuid",currentuuid);
-     
+       formData.append("qubename",qubename);
+      formData.append("hubname",hubname);
+      members.forEach((member)=>
+      formData.append("members",member))
+      formData.append("color",color);
       //console.log(JSON.stringify(formData));
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/folder`, {
@@ -254,6 +274,75 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
     }, 1000); // 3 seconds of inactivity
   }
 
+  async function startRecording() {
+    if(!recording)
+    {try {
+      console.log('Requesting permissions..');
+      const permission = await Audio.requestPermissionsAsync();
+  
+      if (permission.status === 'granted') {
+        console.log('Starting recording..');
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+  
+        const recording = new Audio.Recording();
+    await recording.prepareToRecordAsync({
+      android: {
+        extension: '.m4a',
+        outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+        audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+        sampleRate: 592000, // Higher sample rate for better quality
+        numberOfChannels: 2, // Stereo sound
+        bitRate: 312000, // Higher bitrate for better quality
+      },
+      ios: {
+        extension: '.m4a',
+        audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+        sampleRate: 44100, // Standard high-quality rate
+        numberOfChannels: 2, // Stereo sound
+        bitRate: 128000, // Higher bitrate for better quality
+        linearPCMBitDepth: 16, // 16-bit depth
+        linearPCMIsBigEndian: false,
+        linearPCMIsFloat: false,
+      },
+    });
+
+    await recording.startAsync();
+    setRecording(recording);
+        console.log('Recording started');
+      } else {
+        console.log('Permission to record audio not granted');
+      }
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }}
+    else{
+      stopRecording();
+    }
+  }
+  
+  // Function to stop recording
+  async function stopRecording() {
+    console.log('Stopping recording..');
+    setRecording(undefined);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI(); // Use this URI to get the audio file
+    console.log('Recording stopped and stored at', uri);
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: uri },
+      { shouldPlay: true }  // Automatically play the sound once loaded
+    );
+  
+    // Optionally handle sound playback lifecycle
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.didJustFinish) {
+        console.log('Playback finished');
+      }
+    });
+  }
+
   return (
     <View style={styles.container}>
       
@@ -278,16 +367,17 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
       />
       {!message.trim() && (
         <>
-        <TouchableOpacity style={styles.sendButton} onPress={() => { /* handle mic press */ }}>
-          <FontAwesome name="microphone" size={24} color="white" />
-          
+        <TouchableOpacity style={styles.sendButton} onPress={() => { startRecording(); }}>
+         {!recording ?( <FontAwesome name="microphone" size={24} color="white" />):
+         ( <MaterialCommunityIcons name="motion-pause-outline" size={20} color="white" />)}
         </TouchableOpacity>
          
        </>
       )}
-      <TouchableOpacity style={styles.sendButton} onPress={() => { /* handle mic press */ }}>
+      {/* <TouchableOpacity style={styles.sendButton} onPress={() => {  }}>
       <MaterialIcons name="emoji-emotions" size={24} color="white" />
-      </TouchableOpacity></>):(
+      </TouchableOpacity> */}
+      </>):(
         <View style={styles.menu}>
           {!sharefile && !foldername?(<>
             <TouchableOpacity style={styles.menuItem} onPress={() => {setcloud(true)}}>
@@ -314,19 +404,19 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag}) => {
         <Icon name="document-outline" size={30} color="red" style={[{textAlign:'center',marginRight:200, width:'100%'}]}/>
         )}
         
-      {foldername || sharefile?.folder && (<FontAwesome name="folder-open" size={30} color="orange" style={[{textAlign:'center',marginRight:200, width:'100%', alignContent:'center'}]}/>)}
+      {foldername || sharefile?.folder ? (<FontAwesome name="folder-open" size={30} color="orange" style={[{textAlign:'center',marginRight:200, width:'100%', alignContent:'center'}]}/>):(<></>)}
        {sharefile && ( <Text style={[{color:'white', 
            marginLeft:20,
            marginTop:10, 
            fontSize:10,
            textAlign:'center'
            }]}>{sharefile.name}</Text>)}
-            {foldername && ( <Text style={[{color:'white', 
+            {foldername ? ( <Text style={[{color:'white', 
            marginLeft:20,
            marginTop:10, 
            fontSize:10,
            textAlign:'center'
-           }]}>{foldername}</Text>)}
+           }]}>{foldername}</Text>):(<></>)}
           
         </View>)}
       </View>
