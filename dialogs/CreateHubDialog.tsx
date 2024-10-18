@@ -49,15 +49,15 @@ const CreateHubDialog: React.FC<CreateHubDialogProps> = ({ open, onClose, userId
           // });
       
           const data=`data:image/jpeg;base64,${result.assets[0].base64}`
-          console.log(result.assets[0].uri);
-          console.log(result.assets[0].type);
-          console.log(result.assets[0].fileName);
+          //(result.assets[0].uri);
+          //(result.assets[0].type);
+          //(result.assets[0].fileName);
           photo = { uri: result.assets[0].uri, type: result.assets[0].type, fileName:result.assets[0].fileName }
           //formData.append("filedata",data)
           setdatax(data);
-          console.log(data);
+          //(data);
         }
-      //console.log(result);
+      ////(result);
   
   };
 
@@ -97,7 +97,7 @@ const CreateHubDialog: React.FC<CreateHubDialogProps> = ({ open, onClose, userId
     const savedHub = await savedHubRes.json();
     setStarted(false);
     if (savedHub) {
-      console.log(savedHub);
+      //(savedHub);
       onClose();
     }
   };

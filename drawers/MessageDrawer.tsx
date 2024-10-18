@@ -26,10 +26,10 @@ const MessageDrawer: React.FC<BottomDrawerProps> = ({ isOpen, onClose }) => {
   const panGesture = Gesture.Pan()
   .onUpdate((event) => {
     translateY.value = Math.max(0, event.translationY);
-    console.log("Dragging:", event.translationY); // Add logging here
+    //("Dragging:", event.translationY); // Add logging here
   })
   .onEnd(() => {
-    console.log("Ended drag at:", translateY.value); // Log where the drag ended
+    //("Ended drag at:", translateY.value); // Log where the drag ended
     if (translateY.value > screenHeight * 0.15) {
       translateY.value = withSpring(screenHeight, {}, (finished) => {
         if (finished) runOnJS(onClose)();

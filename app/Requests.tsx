@@ -51,7 +51,7 @@ const Requests: React.FC = () => {
         else
         setUsername('');
     } catch (error) {
-        console.log(error);
+        //(error);
     }
     
   };
@@ -85,7 +85,7 @@ const Requests: React.FC = () => {
       setFriendRequests(prev => prev.filter(req => req._id !== request._id));
 
     } catch (error) {
-      console.log(error);
+      //(error);
     }
   }
 
@@ -117,7 +117,7 @@ const Requests: React.FC = () => {
           width={4}
           fill={75}
           tintColor="white"
-          onAnimationComplete={() => console.log('')}
+          //onAnimationComplete={() => //('')}
           backgroundColor="#4D4599"
           rotation={0}
           lineCap="round" />
@@ -151,7 +151,7 @@ const Requests: React.FC = () => {
           width={4}
           fill={75}
           tintColor="white"
-          onAnimationComplete={() => console.log('')}
+         // onAnimationComplete={() => //('')}
           backgroundColor="#4D4599"
           rotation={0}
           lineCap="round" />

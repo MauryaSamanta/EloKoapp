@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, FlatList,Image, ImageBackground } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {  NavigationProp } from '@react-navigation/native';
@@ -10,10 +11,15 @@ import { io } from 'socket.io-client';
 import { Hub, HubsProps } from '../types'; // Import the types
 import { themeSettings } from '../constants/Colors';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { FontAwesome } from '@expo/vector-icons';
+import CreateHubDialog from '@/dialogs/CreateHubDialog';
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
 type NavigationType = NavigationProp<RootStackParamList>;
 type HubsNavigationProp = {
+  navigate: (screen: string, params?: any) => void;
+};
+type JoinNavigationProp = {
   navigate: (screen: string, params?: any) => void;
 };
 const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
@@ -24,34 +30,48 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
   const token = useSelector((state: any) => state.auth.token);
   const navigation = useNavigation<NavigationType>();
   const navigationhub = useNavigation<HubsNavigationProp>();
+  const navigationjoin=useNavigation<JoinNavigationProp>();
   const bounceAnim = useRef(new Animated.Value(1)).current; // Animated value for scaling
   const [hubsloading, sethubloading]=useState(false);
-  useEffect(() => {
-    const fetchHubs = async () => {
-      sethubloading(true);
-      try {
-        const response = await fetch(`https://surf-jtn5.onrender.com/hub`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        sethubloading(false);
-        setHubs(data);
-      } catch (error) {
-        console.error('Error fetching hubs:', error);
-      }
-    };
+  const [startdialog,setstartdialog]=useState(false);
 
-    fetchHubs();
+  const handlestarthub=()=>{
+    setstartdialog(true);
+    toggleMenu();
+  }
+  useFocusEffect(
+    useCallback(() => {
+      const fetchHubs = async () => {
+        sethubloading(true);
+        try {
+          const response = await fetch(`https://surf-jtn5.onrender.com/hub`, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          sethubloading(false);
+          setHubs(data);
+          //console.log(hubs);
+        } catch (error) {
+          console.error('Error fetching hubs:', error);
+        }
+      };
 
-    socket.on('deleteHub', (hubid: string) => {
-      setHubs((prevHubs) => prevHubs.filter((hub) => hub._id !== hubid));
-    });
+      fetchHubs();
 
-    return () => {
-      socket.off('deleteHub');
-    };
-  }, [userId]);
+      // Set up socket listener for hub deletion
+      const handleDeleteHub = (hubid: string) => {
+        setHubs((prevHubs) => prevHubs.filter((hub) => hub._id !== hubid));
+      };
+
+      socket.on('deleteHub', handleDeleteHub);
+
+      // Clean up the socket listener when the component is unmounted or the screen is blurred
+      return () => {
+        socket.off('deleteHub', handleDeleteHub);
+      };
+    }, [userId, navigationhub]) // Add dependencies as needed
+  );
 
   const handleMenuOpen = (event: any, hub: Hub) => {
     setMenuAnchor(event.currentTarget);
@@ -76,7 +96,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
       setHubs(hubs.filter((hub) => hub?._id !== selectedHub._id));
       handleMenuClose();
     } catch (error) {
-      console.log(error);
+      //(error);
     }
   };
 
@@ -105,7 +125,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
     // const ownerId=hub.owner_id;
     // const {name,description, avatar_url,banner_url,demonym}=hub;
     // const data={name,description,avatar_url,banner_url,demonym,hubId,ownerId};
-    // //console.log(name);
+    // ////(name);
     // navigationhub.navigate("HubHome",data);
   };
 
@@ -115,6 +135,27 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
       useNativeDriver: true,
     }).start(() => setActiveCard(null));
   };
+  const [menuOpen, setMenuOpen] = useState(false); // State to toggle menu
+  const scaleAnim = useState(new Animated.Value(0))[0]; // Initialize animation value for scale
+
+  const toggleMenu = () => {
+    if (menuOpen) {
+      // Close menu animation
+      Animated.timing(scaleAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setMenuOpen(false));
+    } else {
+      // Open menu animation
+      setMenuOpen(true); // Ensure menu is rendered before animating
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
 
   return (
     <View style={[styles.container,hubsloading && {justifyContent:'center', alignItems:'center'}]}>
@@ -123,7 +164,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
           width={6}
           fill={75}
           tintColor="#635acc"
-          onAnimationComplete={() => console.log('')}
+         // onAnimationComplete={() => //('')}
           backgroundColor="#454545"
           rotation={0}
           lineCap="round" />)}
@@ -149,7 +190,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
                   const hubId=item._id;
                   
                   const ownerId=item.owner_id;
-                  const data={name,description,avatar_url,banner_url,demonym,hubId,ownerId};
+                  const data={name,description,avatar_url,banner_url,demonym,hubId,ownerId, setHubs};
                   navigationhub.navigate("HubHome",data);
                   //  navigation.navigate('HubHome', {
                   //   name,
@@ -171,7 +212,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
                   <Text style={styles.hubName}>{item.name}</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity onPress={(e) => handleMenuOpen(e, item)}>
+              {/* <TouchableOpacity onPress={(e) => handleMenuOpen(e, item)}>
                 <Text style={styles.menuButton}>...</Text>
               </TouchableOpacity>
               <Menu
@@ -184,7 +225,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
                 ) : (
                   <Menu.Item onPress={handleLeaveHub} title="Leave Hub" />
                 )}
-              </Menu>
+              </Menu> */}
             </Animated.View>
           )}
           keyExtractor={(item) => item._id}
@@ -203,7 +244,7 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
             autoFocus={false}
           />
           <View style={[{paddingHorizontal:120}]}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} >
             <Text style={styles.buttonText}>Join Hub</Text>
           </TouchableOpacity>
           </View>
@@ -211,6 +252,45 @@ const Hubs: React.FC<HubsProps> = ({ userId,setmainhubs }) => {
           </ImageBackground>
           
       )}
+      <View style={styles.floatingButtonContainer}>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={toggleMenu} // Toggle menu on press
+        >
+          <FontAwesome
+            name={menuOpen ? "times" : "plus"} // Change icon based on menu state
+            size={24}
+            color="white"
+          />
+        </TouchableOpacity>
+
+        {/* Sexy Menu */}
+        {menuOpen && (
+          <Animated.View
+            style={[
+              styles.menu,
+              {
+                transform: [{ scaleY: scaleAnim }], // Animate scale from 0 to 1
+                opacity: scaleAnim, // Animate opacity for smooth transition
+              },
+            ]}
+          >
+            <TouchableOpacity style={styles.menuItem} onPress={handlestarthub}>
+            <Image source={require('../assets/images/rocket.png')}
+         style={[{  width:30, height:30, marginRight:5}]}
+          resizeMode="contain"/>
+              <Text style={styles.menuText}>Start a New Hub</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={()=>{toggleMenu();navigationjoin.navigate('JoinHub',{hubs,setHubs})}}>
+            <Image source={require('../assets/images/join.png')}
+         style={[{  width:30, height:30, marginRight:5}]}
+          resizeMode="contain"/>
+              <Text style={styles.menuText}>Join a Hub</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </View>
+      <CreateHubDialog open={startdialog} onClose={()=>setstartdialog(false)} userId={userId}/>
     </View>
   );
 };
@@ -278,6 +358,49 @@ const styles = StyleSheet.create({
     color: colors.colors.background.default,
     fontSize: 18,
     fontWeight: '500',
+  },
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 35,
+    right: 20,
+    alignItems: 'center',
+  },
+  floatingButton: {
+    backgroundColor: '#635acc',
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5, // To add a slight shadow
+  },
+  // Menu styles
+  menu: {
+    position: 'absolute',
+    bottom: 40,
+    right: 0,
+    backgroundColor: '#635acc',
+    borderRadius: 10,
+    width:200,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderBottomRightRadius:0
+  },
+  menuItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    flexDirection:'row',
+    alignItems:'center'
+
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white', // Accent color
   },
 });
 

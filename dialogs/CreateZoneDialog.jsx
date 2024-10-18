@@ -8,9 +8,9 @@ const CreateZoneDialog = ({ visible, onClose, setZones,qube }) => {
   const handleCreateZone = async() => {
     if (zoneName.trim()) {
       // Handle Zone creation logic here
-      //console.log('Zone Created:', { zoneName });
+      ////('Zone Created:', { zoneName });
       const data={name:zoneName};
-     // console.log(qube._id);
+     // //(qube._id);
       try {
         const response=await fetch(`https://surf-jtn5.onrender.com/zone/${qube._id}/new`,{
             method:"POST",
@@ -21,7 +21,7 @@ const CreateZoneDialog = ({ visible, onClose, setZones,qube }) => {
         if(val.savedZone)
         setZones(prevZones=>[...prevZones,val.savedZone]);
       } catch (error) {
-        console.log(error);
+        //(error);
       }
       setZoneName('');
 

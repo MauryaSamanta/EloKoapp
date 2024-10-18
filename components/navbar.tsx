@@ -27,7 +27,7 @@ const Navbar = ({hub,setmainchats}: NavbarProps) => {
   const [dialog,setdialog]=useState(false);
   const navigationacc = useNavigation<AccountNavigationProp>();
   const navigationfriend=useNavigation<friendnav>();
-  //console.log(avatar);
+  ////(avatar);
   const handleCreateHubClick = () => {
     // Handle create hub functionality
     setdialog(true);
@@ -56,13 +56,16 @@ const Navbar = ({hub,setmainchats}: NavbarProps) => {
       </View>
 
       <View style={styles.rightContainer}>
-       {hub? ( <Button
-          title="Start a New Hub"
-          containerStyle={styles.buttonContainer}
-          titleStyle={styles.buttonText}
-          buttonStyle={styles.buttonBackground}
-          onPress={handleCreateHubClick}
-        />):(
+       {hub? ( 
+        // <Button
+        //   title="Start a New Hub"
+        //   containerStyle={styles.buttonContainer}
+        //   titleStyle={styles.buttonText}
+        //   buttonStyle={styles.buttonBackground}
+        //   onPress={handleCreateHubClick}
+        // />
+        <></>
+      ):(
         // <Button
         //   title="Add Friends"
         //   containerStyle={styles.buttonContainer}

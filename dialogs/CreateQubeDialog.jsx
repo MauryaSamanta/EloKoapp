@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useSelector } from 'react-redux';
 
-const CreateQubeDialog = ({ visible, onClose, setQubes, hub }) => {
+const CreateQubeDialog = ({ visible, onClose, setQubes,owners, hub }) => {
   const [qubeName, setQubeName] = useState('');
   const [qubeNickname, setQubeNickname] = useState('');
   const [error, setError] = useState('');
+  const [access, setAccess] = useState('true'); // New state for access
   const token=useSelector((state)=>state.auth.token);
+
   const handleCreateQube = async() => {
     if (qubeNickname.length > 5) {
       setError('Nickname must be 5 letters or less.');
     } else {
-      const data={qube_name:qubeName, nick_name:qubeNickname};
-      //console.log(JSON.stringify(data));
+      const data={qube_name:qubeName, nick_name:qubeNickname, access, owners:owners }; // Added access to data
+    
       try {
         const response=await fetch(`https://surf-jtn5.onrender.com/qube/${hub}/new`,{
             method:"POST",
@@ -23,7 +25,7 @@ const CreateQubeDialog = ({ visible, onClose, setQubes, hub }) => {
         if(val.savedQube)
         setQubes(prevQubes=>[...prevQubes,val.savedQube]);
       } catch (error) {
-        console.log(error);
+        //(error);
       }
       setError('');
       onClose(); // Close the modal after creation
@@ -68,6 +70,29 @@ const CreateQubeDialog = ({ visible, onClose, setQubes, hub }) => {
             maxLength={5}
             placeholderTextColor={'#616161'}
           />
+
+          {/* Access Radio Buttons */}
+          <Text style={styles.accessLabel}>Access</Text>
+          <View style={styles.radioContainer}>
+            <TouchableOpacity
+              style={styles.radioOption}
+              onPress={() => setAccess('true')}
+            >
+              <View style={styles.radioCircle}>
+                {access === 'true' && <View style={styles.radioChecked} />}
+              </View>
+              <Text style={styles.radioText}>All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.radioOption}
+              onPress={() => setAccess('false')}
+            >
+              <View style={styles.radioCircle}>
+                {access === 'false' && <View style={styles.radioChecked} />}
+              </View>
+              <Text style={styles.radioText}>Permission</Text>
+            </TouchableOpacity>
+          </View>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -119,6 +144,42 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16,
     color: '#fff',
+  },
+  accessLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  radioContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioCircle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#635acc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  radioChecked: {
+    height: 10,
+    width: 10,
+    borderRadius: 5,
+    backgroundColor: '#635acc',
+  },
+  radioText: {
+    color: '#fff',
+    fontSize: 16,
   },
   errorText: {
     color: 'red',

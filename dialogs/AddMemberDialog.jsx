@@ -41,10 +41,10 @@ const AddMemberDialog = ({ visible, onClose, code, hubname, hub_avatar,hub_banne
       // })
 
       Share.open({message:message,url:uri}).then((res) => {
-        console.log(res);
+        //(res);
       })
       .catch((err) => {
-        err && console.log(err);
+        console.log(err) //(err);
       });
       //setloading(false);
       
@@ -73,7 +73,6 @@ const AddMemberDialog = ({ visible, onClose, code, hubname, hub_avatar,hub_banne
           
           
           </View>
-          </View>
           <View style={styles.buttonRow}>
             <TouchableOpacity
               //icon={() =>}
@@ -90,6 +89,8 @@ const AddMemberDialog = ({ visible, onClose, code, hubname, hub_avatar,hub_banne
               <Feather name="share-2" size={20} color="white" />
             </TouchableOpacity>
           </View>
+          </View>
+          
         </Modal>
      
   );

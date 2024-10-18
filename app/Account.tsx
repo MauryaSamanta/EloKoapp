@@ -88,7 +88,7 @@ const Account = () => {
       easing: Easing.ease,
       useNativeDriver: false,
     }).start();
-    //console.log('New bio:', newBio);
+    ////('New bio:', newBio);
     try {
         const data={username:newUsername, bio:newBio};
         const response=await fetch(`https://surf-jtn5.onrender.com/users/${user._id}/avatar`,{
@@ -123,7 +123,7 @@ const Account = () => {
       });
       const savedUser=await response.json();
       dispatch(setlogin({user:savedUser,token:token}))
-      //console.log(savedUser);
+      ////(savedUser);
     } catch (error) {
       
     }
@@ -145,8 +145,8 @@ const Account = () => {
 
   const handlesavePic=async(dataforavatar:string)=>{
     //setdata('');
-    //console.log("hello");
-    //console.log(dataforavatar);
+    ////("hello");
+    ////(dataforavatar);
     try {
         const data={username:newUsername, bio:newBio, filedata:dataforavatar};
         const response=await fetch(`https://surf-jtn5.onrender.com/users/${user._id}/avatar`,{
@@ -154,10 +154,10 @@ const Account = () => {
             headers: { "Content-Type": "application/json" },
             body:JSON.stringify(data)
         });
-        //console.log(response);
+        ////(response);
         //setdata('');
         const savedUser=await response.json();
-       console.log(savedUser);
+       //(savedUser);
         dispatch(setlogin({user:savedUser,token:token}))
     } catch (error) {
         
@@ -176,15 +176,15 @@ const Account = () => {
         {
            const data=`data:image/jpeg;base64,${result.assets[0].base64}`;
            //setdata(data);
-           //console.log(dataforavatar);
+           ////(dataforavatar);
            handlesavePic(data);
         }
-      //console.log(result);
+      ////(result);
   
   };
  
   async function sendPushNotification(expoPushToken: string) {
-    //console.log(expoPushToken);
+    ////(expoPushToken);
     const message = {
       to: expoPushToken,
       sound: 'default',
@@ -202,9 +202,9 @@ const Account = () => {
       },
       body: JSON.stringify(message),
     });
-    console.log(await response.json());
+    //(await response.json());
    } catch (error) {
-    console.log(error);
+    //(error);
    }
     
   }

@@ -115,7 +115,9 @@ const InboxMobile: React.FC<InboxMobileProps> = ({setmainchats}) => {
             const friendId=item.members.find(member=>member?._id.toString()!==userId)?._id
             const friendName=item?.members.find(member => member._id.toString() !== userId)?.username
             const friendAvatar=item?.members.find(member => member._id.toString() !== userId)?.avatar_url
-            navigationchat.navigate("MiniZone",{chatId,friendId,friendName, friendAvatar, members});
+            const friendkey=item?.members.find(member => member._id.toString() !== userId)?.public_key
+            ////(friendkey)
+            navigationchat.navigate("MiniZone",{chatId,friendId,friendName, friendAvatar,friendkey, members});
           }} style={styles.listItem}>
             <Avatar.Image size={50} source={{ uri: item.members.find(member => member._id.toString() !== userId)?.avatar_url }} style={styles.avatar} />
             <View style={styles.textContainer}>

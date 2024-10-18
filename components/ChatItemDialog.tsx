@@ -84,7 +84,7 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
                 width={15}
                 fill={100}
                 tintColor="#00e0ff"
-                //onAnimationComplete={() => console.log('onAnimationComplete')}
+                //onAnimationComplete={() => //('onAnimationComplete')}
                 backgroundColor="#3d5875" />
              )}
             </>
@@ -97,7 +97,7 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
               width={15}
               fill={100}
               tintColor="#00e0ff"
-              //onAnimationComplete={() => console.log('onAnimationComplete')}
+              //onAnimationComplete={() => //('onAnimationComplete')}
               backgroundColor="#3d5875" />
              )}
               <Text style={styles.senderName}>{sender_id.username || senderName}</Text>

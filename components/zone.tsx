@@ -10,6 +10,7 @@ import MessageDrawer from '@/drawers/MessageDrawer';
 import MessageOptionsDialog from '@/dialogs/MessageOptionsDialog';
 import { Hub } from '@/types';
 import TypingAnimation from './TypingAnimation';
+import CryptoJS from 'crypto-js';
 //import MessageDrawer from '@/drawers/MessageDrawer';
 
 // // Define TypeScript interfaces for the props
@@ -23,6 +24,7 @@ interface ZoneScreenProps {
   hubId?:string;
   members?:any[];
   hubname?:string;
+  commkey:string;
  // handleOpenStoreDialog: () => void;
   //messages?: Message[]; // Messages is optional, default is an empty array
 }
@@ -32,7 +34,8 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   selectedQube,
   hubId,
   members,
-  hubname
+  hubname,
+  commkey
   //handleOpenStoreDialog,
   //messages = [],
 }) => {
@@ -45,7 +48,8 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   const [message,setmessage]=useState('');
   const [userTyping,setuserTyping]=useState();
   const [type,settype]=useState(false);
-  //console.log(message);
+  //const [commkey,setcommkey]=useState('');
+  //(commkey);
   const opentagdialog=()=>{
     settagdialog(true);
   }
@@ -53,14 +57,28 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     settagdialog(false);
   }
   const scrollViewRef = useRef<ScrollView>(null);
+ 
   useEffect(()=>{
+   
+
     const getmessages=async()=>{
         try {
             const response=await fetch(`https://surf-jtn5.onrender.com/message/${selectedZone._id}`,{
                 method:"GET"
             });
-            const messagechunk=await response.json();
-            setmessages(messagechunk);
+            const data=await response.json();
+            const decryptedMessages = data.map((message:any) => {
+              try {
+                // Attempt to decrypt the message text
+                const decryptedText = CryptoJS.AES.decrypt(message.text, commkey).toString(CryptoJS.enc.Utf8);
+                message.text = decryptedText;
+            } catch (error) {
+                console.error("Error decrypting message:", error);
+                message.text = "Decryption failed"; // Fallback if decryption fails
+            }
+              return message;
+            });
+            setmessages(decryptedMessages);
         } catch (error) {
             
         }
@@ -68,6 +86,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     const joinZone=async()=>{
       socket.emit('joinZone', selectedZone._id);
     }
+    
     getmessages();
     joinZone();
   },[selectedZone]);
@@ -75,7 +94,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   useEffect(()=>{
     socket.on('UserTyping', (data) => {
       const { user, typing } = data;
-      console.log(user);
+      //(user);
       if (typing) {
         // Show "user is typing" indicator
         setuserTyping(user);
@@ -88,7 +107,8 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     });
 
     socket.on('receiveMessage', (message) => {
-      console.log(message);
+      if(message.text)
+      message.text = CryptoJS.AES.decrypt(message.text, commkey).toString(CryptoJS.enc.Utf8);
       setmessages((prevMessages) =>
         (message.file || message.folder) && message.uuid
           ? prevMessages.map((msg) =>
@@ -97,14 +117,19 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
             )
           : [...prevMessages, message]
       );
-      //console.log(message);
+     
     });
-
     socket.on('deleteMessage',(delmessage)=>{
       setmessages((prevMessages) =>
         prevMessages.filter((message) => message._id !== delmessage)
       );
     })
+    return () => {
+        
+      socket.off('receiveMessage');
+      
+    };
+   
   },[])
 
   useEffect(() => {
@@ -113,7 +138,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   }, [messages]);
 
   useEffect(()=>{
-    console.log(message);
+    //(message);
   },[message])
   return (
     <View style={styles.container}>
@@ -147,7 +172,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       {userTyping && (<TypingAnimation userTyping={userTyping} username={username}/>)}
       <View >
       
-      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message} members={members} qubename={selectedQube?.name} hubname={hubname}/>
+      <MessageInputArea qube={selectedQube?._id} zone={selectedZone?._id} setmessages={setmessages} messagetag={message} members={members} qubename={selectedQube?.name} hubname={hubname} commkey={commkey}/>
       {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={hubId}/>)}
       </View>
       

@@ -1,6 +1,6 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Slot } from 'expo-router';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from './store';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,9 +11,12 @@ import { useEffect } from 'react';
 import { Platform, Linking, ActivityIndicator } from "react-native";
 import Constants from 'expo-constants';
 import { usePushNotifications } from "@/usePushNotifications";
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+//import { useDispatch, useSelector } from 'react-redux';
+import { RootStackParamList } from '../types'; // Assuming you have types defined
 import messaging from '@react-native-firebase/messaging';
 const NAVIGATION_IDS = ['home'];
-
+type NavigationType = NavigationProp<RootStackParamList>;
 function buildDeepLinkFromNotificationData(data:any) {
   const navigationId = data?.navigationId;
   if (!NAVIGATION_IDS.includes(navigationId)) {
@@ -86,16 +89,31 @@ export default function RootLayout() {
     }),
   });
   const { expoPushToken, notification } = usePushNotifications();
+  const navigation = useNavigation<NavigationType>();
   // useEffect(()=>{
   //   messaging().setBackgroundMessageHandler(async remoteMessage => {
-  //     console.log('Message handled in the background!', remoteMessage);
+  //     //('Message handled in the background!', remoteMessage);
   //   });
   // },[])
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'home' }], // Go to home if token exists
+        });
+      }
+    };
   
+    checkLoginStatus();
+  }, []);
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
       <GestureHandlerRootView style={{ flex: 1 }}>
+      
     <Stack>
       <Stack.Screen name="index"  options={{ headerShown: false }} />
       <Stack.Screen name="home"  options={{ headerShown: false }} />
@@ -105,6 +123,7 @@ export default function RootLayout() {
       <Stack.Screen name="MiniZone"  options={{ headerShown: false }} />
       <Stack.Screen name="HubSetting"  options={{ headerShown: false }} />
       <Stack.Screen name="Requests"  options={{ headerShown: false }} />
+      <Stack.Screen name="JoinHub"  options={{ headerShown: false }} />
     </Stack>
     </GestureHandlerRootView>
     </PersistGate>

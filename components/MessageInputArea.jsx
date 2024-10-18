@@ -23,14 +23,16 @@ import CloudDialog from '@/dialogs/CloudDialog';
 import FolderUploadDialog from '@/dialogs/FolderUploadDialog';
 import { Audio } from 'expo-av';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import CryptoJS from 'crypto-js';
 const { width } = Dimensions.get('window');
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
 
-const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, hubname}) => {
+const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qubename, hubname}) => {
   const [tag,settag]=useState(messagetag||'');
   const [message, setMessage] = useState(tag||'');
-  console.log(message);
+  ////(message);
+ ////(zone);
   const [showMenu, setShowMenu] = useState(false);
   const {_id,username,avatar_url,color}=useSelector((state)=>state.auth.user);
   const [filetoshare,setfiletoshare]=useState(null);
@@ -45,7 +47,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
   const [isTyping,setisTyping]=useState(false);
   const typingTimeoutRef=useRef();
   const [recording, setRecording] = useState(false);
-  
+  ////(commkey);
   const handleclosecloud=()=>{
     setcloud(false);
   }
@@ -57,12 +59,12 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
     
   },[tag])
   useEffect(()=>{
-    //console.log(files);
+    ////(files);
   },[folderupload])
   useEffect(()=>{
     const getuuid=()=>{
       setcurrentuuid(uuid.v4());
-      //console.log(currentuuid);
+      ////(currentuuid);
     }
     getuuid();
   },[sharefile, files]);
@@ -81,18 +83,19 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
           encoding: FileSystem.EncodingType.Base64,
         });
         setfiledata(`data:${result.assets[0].mimeType};base64,${base64}`);
-        //console.log(filedata);
+        ////(filedata);
     }
-      //console.log(data);
+      ////(data);
     } catch (error) {
-      console.log(error);
+      //(error);
     }
   }
   const handleSend = async() => {
     if(!sharefile || sharefile?.cloud )
     { if(files.length===0)
-      {let newMessage = {
-      text: message,
+      { const encmess = CryptoJS.AES.encrypt(message, commkey).toString();
+        let newMessage = {
+      text: encmess,
       senderName: username,
       senderAvatar: avatar_url,
       sender_id: _id,
@@ -111,13 +114,13 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
     newMessage={...newMessage, name_folder:sharefile?.name};
     setsharefile(undefined);
     setShowMenu(false);
-    //console.log("Printing the first method");
+    ////("Printing the first method");
     socket.emit('sendMessage', newMessage);
     setMessage('');}
   
   }
     else if(sharefile && sharefile.uri && sharefile.mimeType && sharefile.name){
-      console.log("sending file");
+      //("sending file");
       let newMessage={
         text:message,
         senderName:username,
@@ -148,6 +151,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
       formData.append("zone", zone);
       formData.append("qube",qube);
       formData.append("uuid",currentuuid);
+    
       formData.append("qubename",qubename);
       formData.append("hubname",hubname);
       members.forEach((member)=>{
@@ -155,9 +159,12 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
       });
       formData.append("color",color);
       //setprogress(false);
+      //(JSON.stringify(formData));
+
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/file`, {
           method: "POST",
+          headers: { "Content-Type":"multipart/form-data" },
           body: formData,
         });
         const data = await result.json();
@@ -172,7 +179,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
       }
       
     }
-    //console.log("hellooo");
+    ////("hellooo");
     if(foldername){
       let newMessage={
         text:message,
@@ -188,7 +195,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
       setmessages((prevmessages)=>[...prevmessages,newMessage]);
       setShowMenu(false);
       setfiles([]);
-      //console.log(files);
+      ////(files);
 
       setfoldername('');
       const formData=new FormData();
@@ -208,7 +215,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
       members.forEach((member)=>
       formData.append("members",member))
       formData.append("color",color);
-      //console.log(JSON.stringify(formData));
+      ////(JSON.stringify(formData));
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/folder`, {
           method: "POST",
@@ -216,9 +223,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
           body: formData,
         });
         const data=await result.json();
-        console.log(data);
+        //(data);
       } catch (error) {
-        console.log("error sending folder:",error);
+        //("error sending folder:",error);
       }
     }
     
@@ -247,12 +254,12 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
   }
     setsharefile(data);
     setcloud(false);
-    console.log(file);
-    //console.log(!sharefile);
+    //(file);
+    ////(!sharefile);
   }
 
   const handleclosefolderdialog=()=>{
-    //console.log(files[0]);
+    ////(files[0]);
     setfolderupload(false);
     
   }
@@ -277,11 +284,11 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
   async function startRecording() {
     if(!recording)
     {try {
-      console.log('Requesting permissions..');
+      //('Requesting permissions..');
       const permission = await Audio.requestPermissionsAsync();
   
       if (permission.status === 'granted') {
-        console.log('Starting recording..');
+        //('Starting recording..');
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
@@ -311,9 +318,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
 
     await recording.startAsync();
     setRecording(recording);
-        console.log('Recording started');
+        //('Recording started');
       } else {
-        console.log('Permission to record audio not granted');
+        //('Permission to record audio not granted');
       }
     } catch (err) {
       console.error('Failed to start recording', err);
@@ -325,11 +332,11 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
   
   // Function to stop recording
   async function stopRecording() {
-    console.log('Stopping recording..');
+    //('Stopping recording..');
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI(); // Use this URI to get the audio file
-    console.log('Recording stopped and stored at', uri);
+    //('Recording stopped and stored at', uri);
     const { sound } = await Audio.Sound.createAsync(
       { uri: uri },
       { shouldPlay: true }  // Automatically play the sound once loaded
@@ -338,7 +345,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members, qubename, h
     // Optionally handle sound playback lifecycle
     sound.setOnPlaybackStatusUpdate((status) => {
       if (status.didJustFinish) {
-        console.log('Playback finished');
+        //('Playback finished');
       }
     });
   }

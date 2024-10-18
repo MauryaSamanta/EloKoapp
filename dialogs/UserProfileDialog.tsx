@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback, Alert } from 'react-native';
+import { View, Text, Modal, StyleSheet, Image, TouchableOpacity, Dimensions, TouchableWithoutFeedback, Alert, Animated, Easing } from 'react-native';
 import Svg, { ClipPath, Polygon, Rect, Defs, Image as SvgImage } from 'react-native-svg';
 import { Member } from '@/types';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -107,10 +107,10 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
       // })
 
       Share.open({message:message,url:uri}).then((res) => {
-        console.log(res);
+        //(res);
       })
       .catch((err) => {
-        err && console.log(err);
+        //(err);
       });
       setloading(false);
       
@@ -140,13 +140,13 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
       // else
       // setUsername('');
   } catch (error) {
-      console.log(error);
+      //(error);
   }
   }
 
   useEffect(()=>{
     const getfriendstat=async()=>
-    { console.log('hello');
+    { //('hello');
       const response=await fetch(`https://surf-jtn5.onrender.com/request/${_id}/${user._id}`,{
       method:'GET'
     });
@@ -161,7 +161,37 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
 }
    getfriendstat();
   },[open])
+  const flipAnimation = useRef(new Animated.Value(0)).current;
 
+  // Animation Effect: Flip when the modal becomes visible
+  useEffect(() => {
+    if (open) {
+      Animated.timing(flipAnimation, {
+        toValue: 1, // Flip to 180 degrees
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Reset the animation when modal is hidden
+      Animated.timing(flipAnimation, {
+        toValue: 0, // Flip back to 0 degrees
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [open, flipAnimation]);
+
+  // Interpolating the flip animation to rotate on Y-axis
+  const flipInterpolate = flipAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['180deg', '360deg'],
+  });
+
+  const flipStyle = {
+    transform: [{ rotateY: flipInterpolate }],
+  };
   return (
     <Modal
       visible={open}
@@ -171,7 +201,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
     >
        <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay} >
-        <View style={styles.container} ref={modalRef as any}>
+        <Animated.View style={[styles.container, flipStyle]} ref={modalRef as any}>
             <View style={styles.EloKo}>
         <Text style={styles.username}>EloKo Card</Text>
          
@@ -194,7 +224,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
             <Text style={[styles.infoText,{fontWeight:'400'}]}>Member Since: {formatDate(user.created_at)}</Text>
           </View>
 
-        </View>
+        </Animated.View>
         {user._id===_id ? (<TouchableOpacity style={[{flexDirection:'row',marginTop:10, borderColor:'white', borderWidth:1, padding:10
           , borderRadius:20, borderStyle:'dashed'
         }]} onPress={()=>{if(!loading)captureModal()}}>
@@ -209,7 +239,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           width={4}
           fill={75}
           tintColor="#635acc"
-          onAnimationComplete={() => console.log('')}
+         // onAnimationComplete={() => //('')}
           backgroundColor="#4D4599"
           rotation={0}
           lineCap="round" />)}
@@ -229,7 +259,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
             width={4}
             fill={75}
             tintColor="#635acc"
-            onAnimationComplete={() => console.log('')}
+            //onAnimationComplete={() => //('')}
             backgroundColor="#4D4599"
             rotation={0}
             lineCap="round" />):friendreq && (

@@ -22,7 +22,7 @@ export async function registerForPushNotificationsAsync() {
         finalStatus = status;
       }
       if (finalStatus !== 'granted') {
-        console.log('Permission not granted to get push token for push notification!');
+        //('Permission not granted to get push token for push notification!');
         return;
       }
       const projectId =
@@ -36,7 +36,7 @@ export async function registerForPushNotificationsAsync() {
             projectId,
           })
         ).data;
-        //console.log(pushTokenString);
+        ////(pushTokenString);
         if(pushTokenString)
         return pushTokenString;
       } catch (e: unknown) {

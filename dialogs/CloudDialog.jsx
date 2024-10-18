@@ -24,7 +24,7 @@ const CloudDialog = ({ visible, onClose, handlesharefromcloud }) => {
         });
         const data = await response.json();
         setFiles(data);
-        //console.log(data);
+        ////(data);
       } catch (error) {
         console.error('Error fetching files:', error);
       }
@@ -36,10 +36,10 @@ const CloudDialog = ({ visible, onClose, handlesharefromcloud }) => {
   }, [visible]);
 
   const filterFiles = (type) => {
-    //console.log(files[0].file_name);
-    //console.log(type);
+    ////(files[0].file_name);
+    ////(type);
     if (type === 'media') {
-      //console.log(files.filter((file) => file?.file_name?.endsWith('jpg')));
+      ////(files.filter((file) => file?.file_name?.endsWith('jpg')));
       return files.filter((file) => file?.file_name?.endsWith('jpg'));
     } else if (type === 'docs') {
       return files.filter((file) => file?.file_name?.endsWith('pdf'));

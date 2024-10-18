@@ -49,13 +49,13 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
               source={{ uri: file_url }}
               style={[styles.pdf, { width: screenWidth, height: '80%' }]} // Adjust height as needed
               onLoadComplete={(numberOfPages, filePath) => {
-                console.log(`Number of pages: ${numberOfPages}`);
+                //(`Number of pages: ${numberOfPages}`);
               }}
               onPageChanged={(page,numberOfPages) => {
-                console.log(`Current page: ${page}`);
+                //(`Current page: ${page}`);
             }}
               onError={(error) => {
-                console.log(error);
+                //(error);
               }}
             />
          </>

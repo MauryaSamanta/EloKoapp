@@ -4,13 +4,15 @@ import Form from "../components/Form"; // Assuming Form has been converted to Re
 import {themeSettings} from "../constants/Colors";
 import Svg, { Path } from "react-native-svg"; // For the wave
 import messaging from '@react-native-firebase/messaging';
+import { useRouter } from "expo-router";
+import { useSelector } from "react-redux";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const colors=themeSettings("dark");
-console.log(colors);
+//(colors);
 const LoginPage = () => {
   const isNonMobileScreens = SCREEN_WIDTH >= 1000; // Mock for responsiveness in React Native
   const [pageType,setPageType]=useState("login");
-  
+ 
   return (
     <View style={[styles.container, { backgroundColor: colors.colors.background.default }]}>
       {/* Content Container */}

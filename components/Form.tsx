@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import CircularProgress from 'react-native-circular-progress';
 import { setlogin } from '../app/store/authSlice';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { themeSettings } from "../constants/Colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const colors = themeSettings("dark");
 type NavigationType = NavigationProp<RootStackParamList>;
 interface FormProps {
@@ -82,11 +83,11 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
     if (loggedIn) {
         setloading(false);
         dispatch(setlogin({ user: loggedIn.user, token: loggedIn.token }));
-       //console.log(loggedIn);
-      //  navigation.reset({
-      //   index: 0,
-      //   routes: [{ name: 'home' }], // Resets the stack and navigates to the home screen
-      // });
+       await AsyncStorage.setItem('token',loggedIn.token);
+       navigation.reset({
+        index: 0,
+        routes: [{ name: 'home' }], // Resets the stack and navigates to the home screen
+      });
       navigation.navigate('home')
     }
     setEmail("");
@@ -103,11 +104,11 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
       register();
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        {pageType === "register" ? "Create an Account" : "Login"}
+        {pageType === "register" ? "Create an Account" : "Welcome"}
       </Text>
       {pageType === "register" && (
         <>
@@ -163,7 +164,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
           width={4}
           fill={75}
           tintColor="white"
-          onAnimationComplete={() => console.log('')}
+          //onAnimationComplete={() => //('')}
           backgroundColor="#4D4599"
           rotation={0}
           lineCap="round" />)}

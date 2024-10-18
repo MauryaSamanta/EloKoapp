@@ -20,7 +20,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
       Alert.alert('Limit Reached', 'You can upload up to 10 files.');
       return;
     }
-    console.log("hello");
+    //("hello");
     const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
 
   
@@ -35,7 +35,7 @@ const FolderUploadDialog = ({ visible, onClose, setFiles, setNameFolder }) => {
 
       setLocalFiles((prevFiles) => [...prevFiles, fileData]);
       setFiles((prevFiles) => [...prevFiles, fileData]); // Prop function to set the files array
-      //console.log(files);
+      ////(files);
     
   };
 

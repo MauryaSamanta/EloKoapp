@@ -12,12 +12,14 @@ import { useNavigation } from '@react-navigation/native';
 import {  NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types'; 
 import TypingAnimation from '@/components/TypingAnimation';
+import CryptoJS from 'crypto-js';
 // Define TypeScript interfaces for the params
 interface ChatScreenParams {
   chatId: string;
   friendId: string;
   friendName: string;
   friendAvatar: string;
+  friendkey:string;
   members:any;
 }
 type NavigationType = NavigationProp<RootStackParamList>;
@@ -30,17 +32,19 @@ type LibraryNavProp = {
 const socket = io('https://surf-jtn5.onrender.com');
 const MiniZone: React.FC = () => {
     const route=useRoute();
-  const { chatId, friendId, friendName, friendAvatar, members } = route.params as ChatScreenParams;
+  const { chatId, friendId, friendName, friendAvatar,friendkey, members } = route.params as ChatScreenParams;
+  ////(friendkey);
   const [messages,setmessages]=useState<Message[]>([]);
   const [message,setmessage]=useState('');
   const [chat,setchat]=useState<Message>();
-  const {_id,username}=useSelector((state:any)=>state.auth.user);
+  const {_id,username, public_key}=useSelector((state:any)=>state.auth.user);
+  //(public_key)
   const [drawer,setdrawer]=useState(false);
   const [wall,setwall]=useState('');
   const [userTyping,setuserTyping]=useState();
   const [type,settype]=useState(false);
   const navigationlibrary = useNavigation<LibraryNavProp>();
-  
+ // //(friendkey)
   const joinChat=async()=>{
     socket.emit('joinZone',chatId);
     try {
@@ -48,8 +52,21 @@ const MiniZone: React.FC = () => {
         method:"GET"
       });
       const data=await response.json();
-      setmessages(data);
-      //console.log(messages);
+      const decryptedMessages = data.map((message:any) => {
+        if (message.sender_id._id === _id) {
+          // Decrypt with the user's own public_key
+          message.text = CryptoJS.AES.decrypt(message.text, friendkey).toString(CryptoJS.enc.Utf8);
+        } else {
+          // Decrypt with the friend's key
+          message.text = CryptoJS.AES.decrypt(message.text, public_key).toString(CryptoJS.enc.Utf8);
+        }
+        return message;
+      });
+  
+      setmessages(decryptedMessages);
+      //setmessages(data);
+
+      ////(messages);
     } catch (error) {
       
     }
@@ -63,8 +80,8 @@ const MiniZone: React.FC = () => {
           });
           const data=await response.json();
           setwall(data[0].wall_url);
-          console.log(wall);
-          //console.log(wall);
+          //(wall);
+          ////(wall);
         } catch (error) {
           
         }
@@ -76,7 +93,7 @@ const MiniZone: React.FC = () => {
   useEffect(()=>{
     socket.on('UserTyping', (data) => {
       const { user, typing } = data;
-      console.log(user);
+      //(user);
       if (typing) {
         // Show "user is typing" indicator
         setuserTyping(user);
@@ -88,8 +105,18 @@ const MiniZone: React.FC = () => {
       }
     });
     socket.on('receiveMessage', (message) => {
-      console.log(message);
+     /// //(message.sender_id);
+      if (message.sender_id === _id && message.text) {
+        // Decrypt with the user's own public_key
+       // //('hello');
+        message.text = CryptoJS.AES.decrypt(message.text, friendkey).toString(CryptoJS.enc.Utf8);
+      } else {
+        // Decrypt with the friend's key
+        ////('not hello');
+        message.text = CryptoJS.AES.decrypt(message.text, public_key).toString(CryptoJS.enc.Utf8);
+      }
       setmessages((prevMessages) =>
+        
         (message.file || message.folder) && message.uuid
           ? prevMessages.map((msg) =>
               msg.uuid === message.uuid ? message : msg
@@ -97,8 +124,16 @@ const MiniZone: React.FC = () => {
             )
           : [...prevMessages, message]
       );
-      //console.log(message);
+      ////(message);
     });
+    return () => {
+      // Remove the specific listener
+      socket.off('receiveMessage');
+      
+      // Optionally close the socket connection
+      //socket.disconnect();
+    };
+    //socket.off('receiveMessage');
   },[])
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => {
@@ -110,10 +145,12 @@ const MiniZone: React.FC = () => {
     <View style={styles.container}>
       {/* Header Section */}
       <View style={{  backgroundColor:'#635acc',  borderBottomEndRadius:20, flexDirection:'row', padding:10 }}>
+        <TouchableOpacity style={{  backgroundColor:'#635acc',  borderBottomEndRadius:20, flexDirection:'row', flexGrow:1 }}>
       <Avatar.Image size={50} source={{ uri: friendAvatar }} style={styles.avatar} />
         <Text style={[{color:'white',
                        marginTop:50, marginBottom:15,
-                       fontSize:17, flexGrow:1}]}>{friendName}</Text>
+                       fontSize:17}]}>{friendName}</Text>
+                       </TouchableOpacity>
                         <TouchableOpacity onPress={() => {
             const data={hub:chatId, wallpaper:wall, hubname:friendName};
             navigationlibrary.navigate("Library",data);
@@ -138,7 +175,7 @@ const MiniZone: React.FC = () => {
       {userTyping && (<TypingAnimation userTyping={userTyping} username={username}/>)}
       {/* Message Input Area */}
       <View>
-        <MessageInputArea zone={chatId} qube={null} setmessages={setmessages} messagetag={''} members={members}/>
+        <MessageInputArea zone={chatId} qube={null} setmessages={setmessages} messagetag={''} members={members} commkey={friendkey}  />
       </View>
       {chat && (<MessageOptionsDialog visible={drawer} onClose={()=>setdrawer(false)} message={chat} hubId={chatId}/>)}
     </View>

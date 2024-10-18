@@ -9,12 +9,13 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {  NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types'; 
-import { Member } from '@/types';
+import { Hub,Member } from '@/types';
 import { Qube } from '@/types';
 import HexagonWithText from '@/components/HexagonWithText';
 import ZoneScreen from '@/components/zone';
 import CreateQubeDialog from '@/dialogs/CreateQubeDialog';
 import CreateZoneDialog from '@/dialogs/CreateZoneDialog';
+import QubePermissionDialog from '@/dialogs/QubePermissionDialog';
 // Define the route parameters type
 type HubHomeRouteParams = {
   name?: string;
@@ -23,7 +24,8 @@ type HubHomeRouteParams = {
   banner_url?: string;
   demonym?: string;
   hubId?: string;
-  ownerId?:string;
+  ownerId?:string[];
+  setHubs:()=>void;
 };
 
 // Define the type for the route prop
@@ -50,7 +52,7 @@ const HubHomeScreen: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pan] = useState(new Animated.ValueXY({ x: -DRAWER_WIDTH, y: 0 }));
   const [members,setMembers]=useState([]);
-  const [owner,setOwner]=useState<Member>();
+  const [owners,setOwners]=useState<Member[]>();
   const [qubes,setQubes]=useState([]);
   const [selectedQube,setselectedQube]=useState<Qube>();
   const [zones,setZones]=useState([]);
@@ -64,41 +66,59 @@ const HubHomeScreen: React.FC = () => {
   const navigationsetting=useNavigation<SettingNavProp>();
   // Use the route hook to get params
   const route = useRoute<HubHomeRouteProp>();
-  const { name, description, avatar_url, banner_url, demonym, hubId,ownerId } = route.params;
+  const { name, description, avatar_url, banner_url, demonym, hubId,ownerId, setHubs } = route.params;
   const [hubname,sethubname]=useState(name);
   const [desc,setdesc]=useState(description);
   const [avatar,setavatar]=useState(avatar_url);
   const [banner,setbanner]=useState(banner_url);
   const [demon,setdemon]=useState(demonym);
+  const [qubepermissiondialog,setqubepermissiondialog]=useState(false);
+  const [joinqube,setjoinqube]=useState<Qube>();
+  const [requests,setrequests]=useState();
+  const openpermissiondialog=(qube:Qube)=>{
+    setqubepermissiondialog(true);
+    setjoinqube(qube);
+  }
+  const closepermissiondialog=()=>{
+    setqubepermissiondialog(false);
+    setjoinqube(undefined);
+  }
   const drawerwidth=//selectedQube?EXPANDED_DRAWER_WIDTH:
   DRAWER_WIDTH;
-  //console.log(selectedQube);
+  ////(selectedQube);
   useEffect(()=>{
     const fetchMembers=async()=>{
-        //console.log(hubId);
+        ////(hubId);
         try {
           const response=await fetch(`https://surf-jtn5.onrender.com/hub/${hubId}/members`,{
             method:"GET",
             headers: { Authorization: `Bearer ${token}` },
           });
           const data=await response.json();
-          //console.log(data.userDetails);
+          ////(data.userDetails);
           setMembers(data.userDetails);
-          //console.log(members);
+          ////(members);
         } catch (error) {
           
         }
       }
     const getowner=async()=>{
         try {
-            const response=await fetch(`https://surf-jtn5.onrender.com/users/${ownerId}`,{
-                method:"GET"
-            });
-            const data=await response.json();
-
-            setOwner(data);
-            //console.log(data);
-        } catch (error) {
+          if(ownerId)
+          {const ownersdet = await Promise.all(
+            ownerId.map(async (id) => {
+              const response = await fetch(`https://surf-jtn5.onrender.com/users/${id}`, {
+                method: "GET",
+              });
+              const data = await response.json();
+              return data; // Return the fetched data for each owner
+            })
+          );
+      
+          setOwners(ownersdet); // After all requests are done, set the owners state}
+          console.log(ownersdet);
+            ////(data);
+        }} catch (error) {
             
         }
     }
@@ -109,8 +129,23 @@ const HubHomeScreen: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         const data=await response.json();
+        //console.log(data);
+        // const sortedQubes = data.qubes.sort((a:any, b:any) => {
+        //   if (a.access==='true' && b.access==='false') return -1; // a comes first if access is true
+        //   if (a.access==='false' && b.access==='true') return 1;  // b comes first if access is true
+    
+        //   // Both have access false, now check member array for _id inclusion
+        //   const aHasMember = a.members.includes(_id);
+        //   const bHasMember = b.members.includes(_id);
+    
+        //   if (aHasMember && !bHasMember) return -1; // a comes first if user is in members array
+        //   if (!aHasMember && bHasMember) return 1;  // b comes first if user is in members array
+    
+        //   // Otherwise keep order as is
+        //   return 0;
+        // });
         setQubes(data.qubes);
-        
+        //console.log(qubes);
       } catch (error) {
         
       }
@@ -122,8 +157,8 @@ const HubHomeScreen: React.FC = () => {
         });
         const data=await response.json();
         setwall(data[0].wall_url);
-        console.log(wall);
-        //console.log(wall);
+        //(wall);
+        ////(wall);
       } catch (error) {
         
       }
@@ -132,23 +167,24 @@ const HubHomeScreen: React.FC = () => {
       getowner();
       getqubes();
       getwallpaper();
-},[])
+},[setHubs])
 
 const fetchZones=async(selectedQube:Qube)=>{
   setZones([]);
-  //console.log(selectedQube);
+  ////(selectedQube);
   try {
     const response=await fetch(`https://surf-jtn5.onrender.com/qube/${selectedQube?._id}/zone`,{
       method:"GET",
       headers: { Authorization: `Bearer ${token}`,"Content-Type": "application/json" }
     })
     const data=await response.json();
+    ////(data);
     setZones(data.zones);
 
     setSelectedZone(data.zones[0]);
     //setSelectedZone(data.zones[0]);
     //joinZone(data.zones[0]._id);
-    console.log(zones);
+   
   } catch (error) {
     
   }
@@ -156,8 +192,8 @@ const fetchZones=async(selectedQube:Qube)=>{
 
 // const selectQube=(qube:Qube)=>{
 //   setselectedQube(qube);
-//   //console.log(qube);
-//   //console.log(selectedQube);
+//   ////(qube);
+//   ////(selectedQube);
 //   fetchZones();
 // }
   const openDrawer = () => {
@@ -197,12 +233,28 @@ const fetchZones=async(selectedQube:Qube)=>{
       }
     },
   });
+  const onsendRequest=async()=>{
+    const data={qube:joinqube?._id, user:_id, hub:hubId};
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/qubepermit/sendreq`,{
+        method:'POST',
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data)
+      });
+      closepermissiondialog();
+    } catch (error) {
+      
+    }
+  }
 
+  
   return (
     <View style={styles.container}>
       {/* Custom Drawer */}
       <Animated.View
-        style={[styles.drawer, {width:drawerwidth, transform: pan.getTranslateTransform() }]}
+        style={[styles.drawer, {width:drawerwidth, transform: pan.getTranslateTransform()
+          
+         }]}
         {...panResponder.panHandlers}
       >
         <View style={styles.drawercontent}>
@@ -210,13 +262,30 @@ const fetchZones=async(selectedQube:Qube)=>{
         <View style={styles.qubesplace}>
         <Text style={styles.heading}>Qubes</Text>
         
-       {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);setSelectedZone(null);
-        fetchZones(qube);setselectedQube(qube);}} selectedQube={selectedQube} setselectedQube={setselectedQube}/>))}
-        <TouchableOpacity style={[{marginTop:20}]} onPress={()=>setqubediag(true)}>
+       {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);
+       if(qube.access==='true')
+        {setSelectedZone(null);
+        fetchZones(qube);setselectedQube(qube);}
+        else
+        {
+          if(qube.members?.includes(_id))
+            {setSelectedZone(null);
+              fetchZones(qube);setselectedQube(qube);}
+          else
+          {
+            openpermissiondialog(qube);
+          }
+            
+        }
+        }} selectedQube={selectedQube} setselectedQube={setselectedQube} />))}
+        
+        {ownerId?.includes(_id) && (<TouchableOpacity style={[{marginTop:20}]} onPress={()=>setqubediag(true)}>
         <AntDesign name="pluscircleo" size={34} color="white" />
-        </TouchableOpacity>
+        </TouchableOpacity>)}
+
        </View>
         </View>
+       
        {/* {selectedQube && ( <View style={styles.zonesplace}>
         <View style={[{flexDirection:'row', justifyContent:'space-between'}]}>
         <Text style={styles.heading}>Zones</Text>
@@ -266,12 +335,13 @@ const fetchZones=async(selectedQube:Qube)=>{
 
         <View style={styles.content}>
          {!selectedZone?( <HubOverviewPage name={hubname} description={desc} avatar_url={avatar}
-                           banner_url={banner} demonym={demon} members={members} owner={owner} hubId={hubId}/>):(
-                            <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId} members={members} hubname={name}/>
+                           banner_url={banner} demonym={demon} members={members} owners={owners} hubId={hubId} ownerId={ownerId} setHubs={setHubs} setowners={setOwners}/>):(
+                            <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId} members={members} hubname={name} commkey={selectedZone.symmkey}/>
                            )}
         </View>
-        <CreateQubeDialog visible={qubediag} onClose={()=>setqubediag(false)} setQubes={setQubes} hub={hubId}/>
+        <CreateQubeDialog visible={qubediag} onClose={()=>setqubediag(false)} setQubes={setQubes} hub={hubId} owners={ownerId}/>
         <CreateZoneDialog visible={zonediag} onClose={()=>setzonediag(false)} setZones={setZones} qube={selectedQube}/>
+        <QubePermissionDialog visible={qubepermissiondialog} onClose={closepermissiondialog} onsendRequest={onsendRequest}/>
       </View>
     </View>
   );
@@ -286,7 +356,7 @@ const styles = StyleSheet.create({
   drawer: {
     //width: drawerwidth,
     height: '100%',
-    backgroundColor:'#292929',
+    backgroundColor:'transparent',
     position: 'absolute',
     top: statusBarHeight,
     left: 0,
@@ -372,12 +442,13 @@ const styles = StyleSheet.create({
     alignItems:'center',
     backgroundColor:colors.colors.primary.main,
     borderRadius:10,
-    height:'100%'
+    height:'100%',
+    width:90
   },
   zonesplace:{
     paddingTop:20,
     marginLeft:15,
-    width:'58%'
+    //width:'58%'
     //alignItems:'center'
   },
   zone:{

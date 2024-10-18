@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, StyleSheet, SafeAreaView, Animated } from 'react-native';
+import { Text, View, StyleSheet, SafeAreaView, Animated, TouchableOpacity } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { createBottomTabNavigator, BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -13,6 +13,8 @@ import { Chat, Hub, HubsProps } from '../types';
 import { setlogin } from './store/authSlice';
 const colors = themeSettings("dark");
 import { registerForPushNotificationsAsync } from '@/NotificationPermission';
+import { Button } from 'react-native-elements';
+import { FontAwesome } from '@expo/vector-icons';
 const Tab = createBottomTabNavigator();
 //const [mainhubs,setmainhubs]=useState<Hub[]>([]);
 // "My Hubs" screen
@@ -21,9 +23,31 @@ function MyHubsScreen() {
   const user=useSelector((state:any)=>state.auth.user);
   const token=useSelector((state:any)=>state.auth.token);
   const dispatch=useDispatch();
+  const [menuOpen, setMenuOpen] = useState(false); // State to toggle menu
+  const scaleAnim = useState(new Animated.Value(0))[0]; // Initialize animation value for scale
+
+  const toggleMenu = () => {
+    if (menuOpen) {
+      // Close menu animation
+      Animated.timing(scaleAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setMenuOpen(false));
+    } else {
+      // Open menu animation
+      setMenuOpen(true); // Ensure menu is rendered before animating
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
   useEffect(()=>{
    const tokenfornotifications=async()=>{ const pushtoken=await registerForPushNotificationsAsync();
-    console.log(pushtoken);
+    //(pushtoken);
     const data={pushtoken:pushtoken};
     try {
       const response=await fetch(`https://surf-jtn5.onrender.com/users/${_id}`,{
@@ -32,11 +56,11 @@ function MyHubsScreen() {
         body:JSON.stringify(data)
       });
       const val=await response.json();
-      console.log(val);
+      //(val);
       dispatch(setlogin({user:val,token:token}))
 
     } catch (error) {
-      console.log(error);
+      //(error);
     }}
     tokenfornotifications();
   },[])
@@ -49,6 +73,7 @@ function MyHubsScreen() {
         
         <Hubs userId={_id} setmainhubs={setmainhubs} />
       </View>
+      
     </SafeAreaView>
   );
 }
@@ -166,5 +191,70 @@ const styles = StyleSheet.create({
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonContainer: {
+    marginHorizontal: 10,
+    width: 150, // Set a fixed width for the button
+  },
+  buttonBackground: {
+    backgroundColor: colors.colors.primary.main,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: colors.colors.primary.main,
+  },
+  buttonText: {
+    color: '#f6f6f6',
+    fontWeight: 'bold',
+  },
+  floatingButtonContainer: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    alignItems: 'center',
+  },
+  floatingButton: {
+    backgroundColor: '#635acc',
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5, // To add a slight shadow
+  },
+  // Menu styles
+  menu: {
+    position: 'absolute',
+    bottom: 40,
+    right: 0,
+    backgroundColor: '#635acc',
+    borderRadius: 10,
+    width:200,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderBottomRightRadius:0
+  },
+  menuItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection:'row'
+  },
+  menuText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white', // Accent color
+  },
+  menuTail: {
+    position: 'absolute',
+    top: -20, // Positioning the tail right above the button
+    right: 20, // Adjust to align with the button
+    width: 40,
+    height: 40,
+    backgroundColor: '#635acc',
+    transform: [{ rotate: '45deg' }], // Creating the triangle effect
+    borderRadius: 2,
   },
 });

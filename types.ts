@@ -13,7 +13,7 @@ export interface Hub {
   description?: string;
   avatar_url?: string;
   banner_url?: string;
-  owner_id: string;
+  owner_id?: string[];
   demonym?: string;
 }
 
@@ -28,6 +28,7 @@ export interface Member {
   username: string;
   avatar_url?: string;
   bio?:string;
+  public_key?:string;
   created_at:string;
 }
 
@@ -43,6 +44,8 @@ export interface Qube {
   hub_id?: string;
   name?: string;
   nickname?: string;
+  access?:string;
+  members?:string[];
   created_at?: Date;
   updated_at?: Date;
 }

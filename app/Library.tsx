@@ -62,14 +62,14 @@ const Library: React.FC = () => {
       .map((coord) => coord._id); // Get the names
     
     if (nearNames.length > 0) {
-     console.log('Near coordinates:', nearNames[0]);
+     //('Near coordinates:', nearNames[0]);
      //setselectedfolder(nearNames[0]);
      //folderselect(nearNames[0]);
     }
     //setselectedfolder(nearNames[0]);
     
   
-    console.log('Move X:', moveX); // This will log the x-coordinate during the drag
+    //('Move X:', moveX); // This will log the x-coordinate during the drag
   };
   const handlerelease=(e: any, gestureState: any)=>{
     const { moveX, moveY } = gestureState;
@@ -81,7 +81,7 @@ const Library: React.FC = () => {
     .map((coord) => coord._id); // Get the names
     if(nearNames.length>0)
       {//setselectedfolder(nearNames[0]);
-        //console.log(selectedfolder);
+        ////(selectedfolder);
         addFiletoFolder(nearNames[0]);
       }
   }
@@ -158,12 +158,12 @@ const Library: React.FC = () => {
 
   const handlefile=(file:File)=>{
     if(file.name_folder)
-    { console.log('ok');
+    { //('ok');
       setselectedfolder(file);
       setfolderdialog(true);
     }
     else if(file.file_name)
-    { console.log("hello");
+    { //("hello");
       setselectedfile(file);
       setshowfile(true);
     }
@@ -203,17 +203,17 @@ const Library: React.FC = () => {
    
     itemRefs.current.forEach((ref, index) => {
       if (ref && files[index].name_folder) {
-        //console.log(files[index].name_folder);
+        ////(files[index].name_folder);
         ref.measure((x, y, width, height, pageX, pageY) => {
           if(files[index].name_folder)
           coordinates.push({ _id:files[index]._id, name:files[index].name_folder,key: files[index]._id, x: pageX, y: pageY });
-          console.log(coordinates);
+          //(coordinates);
         });
       }
     });
 
     // You can log the coordinates or do something with them
-    //console.log(coordinates);
+    ////(coordinates);
   }, [ handleDrag]); // Re-run when files change
 
   const selectwall=async()=>{
@@ -231,7 +231,7 @@ const Library: React.FC = () => {
     name:result.assets[0].fileName
     }as any);
     formData.append("id",user._id);
-    console.log(JSON.stringify(formData));
+    //(JSON.stringify(formData));
     try {
       const response=await fetch(`https://surf-jtn5.onrender.com/wall/${hub}`,{
         method:"PATCH",
@@ -241,7 +241,7 @@ const Library: React.FC = () => {
       setwall(data.wall_url);
       setwallpaper(data.wall_url);
     } catch (error) {
-      console.log(error);
+      //(error);
     }}
     else
     return null;

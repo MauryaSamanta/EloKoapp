@@ -28,7 +28,7 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
       setsavedText('Save to My Library');
     },[])
     const saveFile=async()=>{
-        console.log("hello");
+        //("hello");
         const fileData = {
             hub_id: hubId ,
             file_url: message.file,
@@ -43,7 +43,7 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
               body: JSON.stringify(fileData),
             });
             const data = await response.json();
-            console.log(data);
+            //(data);
             if(data==='Success')
                 setsavedText('Saved');
             //setShowTick(true); // Show tick mark after saving
@@ -54,13 +54,13 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
     }
     const deletemsg=async()=>{
       let messageid=message._id;
-      console.log(message._id);
+      //(message._id);
       onClose();
       try {
         const response=await fetch(`https://surf-jtn5.onrender.com/message/${message._id}`,{
           method:"DELETE"
         });
-        //console.log(response);
+        ////(response);
        
         
       } catch (error) {

@@ -37,12 +37,12 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose, m
   
   const handleDragRelease = (event:any, gestureState:any, item:any) => {
     const { moveX, moveY } = gestureState;
-    //console.log(moveX);
+    ////(moveX);
     const modalWidth = modalDimensions.width;
     const modalHeight = modalDimensions.height;
     const screenWidth = Dimensions.get('window').width;
     const screenHeight = Dimensions.get('window').height;
-    console.log(modalWidth)
+    //(modalWidth)
     // Checking if the draggable item is outside the modal boundaries
     if (
       moveX < (screenWidth - modalWidth) / 2 ||

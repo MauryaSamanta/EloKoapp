@@ -65,7 +65,7 @@ const HubSetting = () => {
 
   const editdetails=async()=>{
     const data={hubname:tempHubName,desc:tempdesc, demonym:tempDemon};
-    console.log(JSON.stringify(data));
+    //(JSON.stringify(data));
     try {
       const response=await fetch(`https://surf-jtn5.onrender.com/hub/${hubId}/settings`,{
         method:"PATCH",
@@ -81,7 +81,7 @@ const HubSetting = () => {
       // setdemon(data.demonym);
 
     } catch (error) {
-      console.log(error);
+      //(error);
     }
   }
 
@@ -116,7 +116,7 @@ const HubSetting = () => {
           setbanner(data.banner_url);
           
         } catch (error) {
-          console.log(error);
+          //(error);
         }
       }
   }
@@ -152,10 +152,10 @@ const HubSetting = () => {
             setavatar(data.avatar_url);
             
           } catch (error) {
-            console.log(error);
+            //(error);
           }
         }
-      //console.log(result);
+      ////(result);
   }
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>

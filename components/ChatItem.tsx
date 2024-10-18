@@ -57,7 +57,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
     const parts = text?.split(/(#\w+)/g);
     return parts.map((part, index) => (
       part.match(/#\w+/) ? (
-        <Text key={index} style={styles.hashtag} onPress={()=>{setmessage(part);console.log(part)}}>{part}</Text>
+        <Text key={index} style={styles.hashtag} onPress={()=>{setmessage(part);}}>{part}</Text>
       ) : (
         <Text key={index}>{part}</Text>
       )
@@ -92,7 +92,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
               <Text style={[styles.timestamp,{marginRight:10,marginTop:0}]}>sending...</Text>
              )}
               <Text style={[styles.senderName,{color:sender_id.color||color||'white'}]}>{sender_id.username || senderName}</Text>
-              <Avatar.Image size={30} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.ownAvatar} />
+              <Avatar.Image size={35} source={{ uri: sender_id.avatar_url || senderAvatar }} style={styles.ownAvatar} />
             </>
           )}
         </View>
@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
   senderName: {
     fontWeight: 'bold',
     color: 'white',
+    fontSize:16
   },
   timestamp: {
     color: 'grey',
