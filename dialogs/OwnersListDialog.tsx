@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import UserProfileDialog from './UserProfileDialog';
 import { Hub } from '@/types';
@@ -22,9 +22,22 @@ const OwnersListDialog = ({ visible, onClose, members, hub, setHubs, setowners,o
     setowners:(x:Member[])=>void;
  }) => {
     const [userdialog,setuserdialog]=useState();
+    const [Members,setMembers]=useState(members);
   // Render individual member item
   const {_id}=useSelector((state:any)=>state.auth.user);
   const isOwner= members.some(member => member._id === _id);
+  useEffect(()=>{
+    const membersArray = members;
+
+    // Sort members array
+    const sortedMembers = membersArray.sort((a:any, b:any) => {
+      if (a._id === _id) return -1; // Place the matching _id first
+      if (b._id === _id) return 1;  // Continue sorting other members
+      return a.username.localeCompare(b.username); // Sort alphabetically
+    });
+    
+              setMembers(sortedMembers);
+  },[])
   const removeowner=async(userid:string)=>{
     const data={hubid:hub, user:userid};
     //console.log(JSON.stringify(data));
@@ -85,7 +98,7 @@ const OwnersListDialog = ({ visible, onClose, members, hub, setHubs, setowners,o
           <Text style={styles.modalTitle}>Hub Owners</Text>
 
           <FlatList
-            data={members}
+            data={Members}
             keyExtractor={(item) => item._id}
             renderItem={renderMember}
             showsVerticalScrollIndicator={false}

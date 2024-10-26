@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, Modal, TouchableOpacity, StyleSheet, Dimensions, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import Pdf from 'react-native-pdf';
+import { WebView } from 'react-native-webview';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 // Define interface for props
 interface FilePreviewDialogProps {
   file_url: string;
@@ -13,6 +15,8 @@ interface FilePreviewDialogProps {
 const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_name, isVisible, onClose }) => {
   const screenWidth = Dimensions.get('window').width;
   const isPDF = file_name.endsWith('.pdf');
+  const isImage=file_name.endsWith(".jpg") || file_name.endsWith(".jpeg")||file_name.endsWith(".png");
+  const [loading,setloading]=useState(true);
   return (
     <Modal
       visible={isVisible}
@@ -20,7 +24,7 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
       animationType="fade"
       onRequestClose={onClose}
     >
-        <TouchableWithoutFeedback onPress={()=>{!isPDF&& onClose();}}>
+        <TouchableWithoutFeedback onPress={()=>{isImage && onClose();}}>
       <View style={styles.modalBackground}>
         {/* Close Button at the top right of the screen */}
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -36,13 +40,15 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
           style={[styles.image, { width: screenWidth }]}
           resizeMode="contain"
         /> */}
-          {!isPDF ? (
+          {!isPDF && isImage ? (
             <Image
               source={{ uri: file_url }}
               style={[styles.image, { width: screenWidth }]}
               resizeMode="contain"
             />
-          ) : (
+          ) : isPDF?(
+            //<WebView source={{ uri: 'https://docs.google.com/viewer?url=https://res.cloudinary.com/df9fz5s3o/raw/upload/v1729439527/w9rtz25xqpxivja6wadw.pptx&embedded=true' }} style={{width:400, marginTop:60}} />
+           <>
            <>
             <Pdf
             trustAllCerts={false}
@@ -58,8 +64,47 @@ const FilePreviewDialog: React.FC<FilePreviewDialogProps> = ({ file_url, file_na
                 //(error);
               }}
             />
+            </>
+            {/* <>
+            <Pdf
+            trustAllCerts={false}
+              source={{ uri: file_url }}
+              style={[styles.pdf, { width: screenWidth, height: '80%' }]} // Adjust height as needed
+              onLoadComplete={(numberOfPages, filePath) => {
+                //(`Number of pages: ${numberOfPages}`);
+              }}
+              onPageChanged={(page,numberOfPages) => {
+                //(`Current page: ${page}`);
+            }}
+              onError={(error) => {
+                //(error);
+              }}
+            />
+            </> */}
          </>
-          )}
+          ):( 
+          // <>
+          //   {loading ?(<AnimatedCircularProgress
+          // size={30}
+          // width={4}
+          // fill={75}
+          // tintColor="white"
+          // //onAnimationComplete={() => //('')}
+          // backgroundColor="#4D4599"
+          // rotation={0}
+          // lineCap="round" />
+          // ):(
+          // <WebView source={{ uri: `https://docs.google.com/viewer?url=${file_url}&embedded=true` }} onLoad={()=>{console.log(loading)}}
+          // style={{width:400, marginTop:60}} />)}
+          //   </>
+          <WebView source={{ uri: `https://docs.google.com/viewer?url=${file_url}&embedded=true` }} style={{width:400, marginTop:60}}
+          javaScriptEnabled={true}
+   domStorageEnabled={true}
+   startInLoadingState={false}
+   scalesPageToFit={true} />
+          
+        //   
+        )}
       </View>
       </TouchableWithoutFeedback>
     </Modal>

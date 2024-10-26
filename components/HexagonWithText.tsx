@@ -20,9 +20,10 @@ interface Props {
     onPress: () => void; // Click handler
     selectedQube?: Qube;
     setselectedQube: (value: Qube) => void;
+    ownerId?:string[];
 }
 
-const HexagonWithText: React.FC<Props> = ({ qube, style, onPress, selectedQube, setselectedQube }) => {
+const HexagonWithText: React.FC<Props> = ({ qube, style, onPress, selectedQube, setselectedQube, ownerId }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current; // For scaling animation
     const rotateAnim = useRef(new Animated.Value(0)).current; // For rotation during the press
     const colorAnim = useRef(new Animated.Value(0)).current; // For color animation
@@ -39,7 +40,7 @@ const HexagonWithText: React.FC<Props> = ({ qube, style, onPress, selectedQube, 
     });
 
     // Condition to show the lock icon
-    const showLockIcon = qube.access==='false' && !qube.members?.includes(_id);
+    const showLockIcon = qube.access==='false' && !qube.members?.includes(_id) && !ownerId?.includes(_id);
     //console.log(showLockIcon);
     return (
         <TouchableOpacity

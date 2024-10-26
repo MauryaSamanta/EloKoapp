@@ -16,28 +16,27 @@
       "supportsTablet": true
     },
     "android": {
-      "googleServicesFile":"./google-services.json",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/EloKoMainLogo.png",
         "backgroundColor": "#121212"
       },
-      "plugins":[
+      "plugins": [
         "@config-plugins/react-native-blob-util",
         "@config-plugins/react-native-pdf"
       ],
       "package": "com.mauryax.client",
       "permissions": [
-    "INTERNET",
-    "WRITE_EXTERNAL_STORAGE",
-    "READ_EXTERNAL_STORAGE"
-  ]
+        "INTERNET",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    
     "experiments": {
       "typedRoutes": true
     },
@@ -45,6 +44,15 @@
       "eas": {
         "projectId": "e2030dc9-f074-43b7-a259-ba04d7a59202"
       }
+    },
+    "plugins": [
+      "expo-video"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e2030dc9-f074-43b7-a259-ba04d7a59202"
     }
   }
 }

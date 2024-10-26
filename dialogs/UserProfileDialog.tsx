@@ -80,6 +80,15 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
   const [loading,setloading]=useState(false);
   const [friendreq,setfriendreq]=useState(false);
   const [friend,setfriend]=useState(false);
+  const [rendered,setrendered]=useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setrendered(true);
+    }, 500 ); // 500 seconds in milliseconds
+
+    // Cleanup the timer on unmount
+    return () => clearTimeout(timer);
+  }, []);
   const captureModal = async () => {
     setloading(true);
     try {
@@ -201,15 +210,19 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
     >
        <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay} >
-        <Animated.View style={[styles.container, flipStyle]} ref={modalRef as any}>
+        <Animated.View style={[styles.container, flipStyle,rendered && {shadowColor: '#FFD700',    // Glow color (gold)
+    shadowOffset: { width: 0, height: 0 },  // Center the shadow evenly
+    shadowOpacity: 1,          // Make it fully visible
+    shadowRadius: 20, 
+    elevation: 20,borderColor: 'gold', }]} ref={modalRef as any}>
             <View style={styles.EloKo}>
-        <Text style={styles.username}>EloKo Card</Text>
+        <Text style={[styles.username,{color:"white"}]}>EloKo Card</Text>
          
           </View>
           <View style={styles.header}>
           
             <HexagonImage uri={user.avatar_url} style={styles.hexagonImage} />
-            <Text style={styles.username}>{user.username}</Text>
+            <Text style={[styles.username,{color:user.color || '#ffffff'}]}>{user.username}</Text>
           </View>
 
           {user.bio && (
@@ -249,8 +262,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           }]} onPress={()=>{if(!loading && !friendreq && !friend)sendRequest()}}>
             {!loading && !friendreq && !friend?(<>
             
-            <Ionicons name="person-add-sharp" size={20} color="#625acc" style={[{marginRight:10}]} />
-        <Text style={[{alignItems:'center', color:'#635acc', fontWeight:'bold',
+            <Ionicons name="person-add-sharp" size={20} color="#35fc03" style={[{marginRight:10}]} />
+        <Text style={[{alignItems:'center', color:'#35fc03', fontWeight:'bold',
             fontSize:15, 
           }]}>Send Friend Request</Text>
           </>):
@@ -290,19 +303,19 @@ const styles = StyleSheet.create({
   container: {
     width: SCREEN_WIDTH - 70,
     backgroundColor: '#635acc',
-    borderColor: 'gold',
+    
     borderWidth: 3,
     borderRadius: 16,
     padding: 20,
 
     // Android elevation
-    elevation: 20,   // Works for Android, adds a shadow-like effect
+    //elevation: 20,   // Works for Android, adds a shadow-like effect
 
     // iOS shadow (for glowing effect)
-    shadowColor: '#FFD700',    // Glow color (gold)
-    shadowOffset: { width: 0, height: 0 },  // Center the shadow evenly
-    shadowOpacity: 1,          // Make it fully visible
-    shadowRadius: 20,          // Increase to make the glow softer and wider
+    // shadowColor: '#FFD700',    // Glow color (gold)
+    // shadowOffset: { width: 0, height: 0 },  // Center the shadow evenly
+    // shadowOpacity: 1,          // Make it fully visible
+    // shadowRadius: 20,          // Increase to make the glow softer and wider
 
     // Adding a slight inner shadow to enhance the glow effect
     overflow: 'visible',        // Ensures shadow does not get clipped
@@ -332,11 +345,17 @@ const styles = StyleSheet.create({
   hexagonImage: {
     width: 80,
     height: 80,
+  
   },
   username: {
     fontSize: 20,
-    color: '#ffffff',
+    //color: '#ffffff',
     fontWeight: 'bold',
+    elevation:20,
+    shadowColor: 'black', // Shadow color
+    shadowOffset: { width: 0, height: 3 }, // Shadow offset
+    shadowOpacity: 0.5, // Shadow opacity
+    shadowRadius: 4, // Shadow blur
   },
   bioContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',

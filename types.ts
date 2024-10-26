@@ -30,6 +30,7 @@ export interface Member {
   bio?:string;
   public_key?:string;
   created_at:string;
+  color?:string;
 }
 
 export interface Chat {

@@ -11,6 +11,9 @@ import MessageOptionsDialog from '@/dialogs/MessageOptionsDialog';
 import { Hub } from '@/types';
 import TypingAnimation from './TypingAnimation';
 import CryptoJS from 'crypto-js';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import MessageDrawer from '@/drawers/MessageDrawer';
 
 // // Define TypeScript interfaces for the props
@@ -27,6 +30,9 @@ interface ZoneScreenProps {
   commkey:string;
  // handleOpenStoreDialog: () => void;
   //messages?: Message[]; // Messages is optional, default is an empty array
+}
+type SettingNavProp={
+  navigate:(screen:string, params?:any)=>void;
 }
 const socket = io('https://surf-jtn5.onrender.com');
 const ZoneScreen: React.FC<ZoneScreenProps> = ({
@@ -48,8 +54,10 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
   const [message,setmessage]=useState('');
   const [userTyping,setuserTyping]=useState();
   const [type,settype]=useState(false);
+  const navigationqube=useNavigation<SettingNavProp>()
   //const [commkey,setcommkey]=useState('');
   //(commkey);
+  
   const opentagdialog=()=>{
     settagdialog(true);
   }
@@ -90,7 +98,9 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     getmessages();
     joinZone();
   },[selectedZone]);
-
+  const getfromAsync=async(key:string)=>{
+    return await AsyncStorage.getItem(key);
+  }
   useEffect(()=>{
     socket.on('UserTyping', (data) => {
       const { user, typing } = data;
@@ -112,7 +122,13 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       setmessages((prevMessages) =>
         (message.file || message.folder) && message.uuid
           ? prevMessages.map((msg) =>
-              msg.uuid === message.uuid ? message : msg
+            msg.uuid === message.uuid
+          ? {
+              ...message,
+              file:
+                message.key && (getfromAsync(message.key)) || message.file, // Fetch AsyncStorage if key is present
+            }
+          : msg
           
             )
           : [...prevMessages, message]
@@ -145,11 +161,14 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       {/* Header Section */}
      
       <View style={[styles.header,{backgroundColor:'transparent'}]}>
-        <Text style={styles.zoneName}>{selectedQube?.name}</Text>
-
+        <Text style={styles.zoneName} onPress={()=>{
+          const data={qube:selectedQube};
+          navigationqube.navigate("Qube",data);
+        }}>{selectedQube?.name}</Text>
+        <AntDesign name="right" size={20} color="white" style={[{marginLeft:-170}]} />
         <TouchableOpacity style={styles.storeButton} onPress={opentagdialog}
         >
-          <Text style={styles.storeButtonText}>#store</Text>
+          <Text style={styles.storeButtonText}>#tags</Text>
         </TouchableOpacity>
       </View>
       <TagStoreDialog open={tagdialog} qubeid={selectedQube?._id} onClose={closettagdialog}/>
@@ -202,7 +221,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   storeButton: {
-    backgroundColor: '#854be3',
+    backgroundColor: '#635acc',
     paddingVertical: 6,
     paddingHorizontal: 16,
     borderRadius: 20,

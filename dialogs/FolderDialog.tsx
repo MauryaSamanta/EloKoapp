@@ -62,10 +62,20 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose, m
   // Function to return the appropriate icon for file types inside the folder
   const getFileIcon = (file_name: string, file_url:string) => {
     if (file_name.endsWith('.pdf')) {
-      return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
+      return <Image source={{ uri: file_url.replace(/\.pdf$/, '.jpg') }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
     } else if (file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
       return <Image source={{ uri: file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
-    } else {
+    } else if(file_name.match(/\.(ppt|pptx)$/))
+      {
+        return <Image source={require(`../assets/images/ppt.png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+      } else if(file_name.match(/\.(doc|docx)$/))
+        {
+          return <Image source={require(`../assets/images/doc (1).png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+        }else if(file_name.match(/\.(xls|xlsx)$/))
+          {
+            return <Image source={require(`../assets/images/xls.png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+          }
+    else {
       return <MaterialIcons name="insert-drive-file" size={60} color="#2196f3" />;
     }
   };

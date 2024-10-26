@@ -32,7 +32,7 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
   const [loading,setloading]=useState(false);
   const navigation = useNavigation<NavigationType>(); // Use navigation with types
   const dispatch = useDispatch();
-  
+  const navigationsignup = useNavigation<any>(); // Use navigation with types
   const register = async () => {
     if (username === "" || pass === "" || email === "" || dob === "") return;
 
@@ -174,15 +174,16 @@ const App:React.FC<FormProps> = ({setPageTypee}) => {
       <TouchableOpacity
         onPress={() => {
           //setPageType(pageType === "login" ? "register" : "login");
-          if(pageType==="login")
-          {
-            setPageType("register");
-            setPageTypee("register");
-          }
-          else
-          { setPageType("login")
-            setPageTypee("login");
-          }
+          // if(pageType==="login")
+          // {
+          //   setPageType("register");
+          //   setPageTypee("register");
+          // }
+          // else
+          // { setPageType("login")
+          //   setPageTypee("login");
+          // }
+          navigationsignup.navigate("GetStarted");
           setUsername("");
           setEmail("");
           setDob("");

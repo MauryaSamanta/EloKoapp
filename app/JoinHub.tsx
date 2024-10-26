@@ -109,7 +109,7 @@ const JoinHub: React.FC = () => {
 
           <Text style={styles.sectionHeader}>Enter Invite Code and Start Your Journey</Text>
 
-          <TouchableOpacity style={styles.sendButton} onPress={joinhub}>
+          <TouchableOpacity style={styles.sendButton} onPress={()=>{if(code) joinhub()}}>
             {!sending ? (
               <Text style={[{ color: 'white' }]}>Join Hub</Text>
             ) : (
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     color: '#635acc',
   },
   input: {
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#635acc',
     borderRadius: 15,
     padding: 10,

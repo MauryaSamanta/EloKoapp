@@ -53,17 +53,22 @@ const MiniZone: React.FC = () => {
       });
       const data=await response.json();
       const decryptedMessages = data.map((message:any) => {
-        if (message.sender_id._id === _id) {
-          // Decrypt with the user's own public_key
-          message.text = CryptoJS.AES.decrypt(message.text, friendkey).toString(CryptoJS.enc.Utf8);
-        } else {
-          // Decrypt with the friend's key
-          message.text = CryptoJS.AES.decrypt(message.text, public_key).toString(CryptoJS.enc.Utf8);
+        try {
+          if (message.sender_id._id === _id) {
+            // Decrypt with the user's own public_key
+            message.text = CryptoJS.AES.decrypt(message.text, friendkey).toString(CryptoJS.enc.Utf8);
+          } else {
+            // Decrypt with the friend's key
+            message.text = CryptoJS.AES.decrypt(message.text, public_key).toString(CryptoJS.enc.Utf8);
+          }
+          return message;
+        } catch (error) {
+          console.log(error);
         }
-        return message;
+        
       });
-  
-      setmessages(decryptedMessages);
+     
+      setmessages(data);
       //setmessages(data);
 
       ////(messages);
@@ -104,6 +109,7 @@ const MiniZone: React.FC = () => {
         settype(false);
       }
     });
+    
     socket.on('receiveMessage', (message) => {
      /// //(message.sender_id);
       if (message.sender_id === _id && message.text) {

@@ -187,7 +187,17 @@ const Library: React.FC = () => {
       return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
     } else if (file.file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
       return  <Image source={{ uri: file.file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
-    } else {
+    } else if(file.file_name.match(/\.(ppt|pptx)$/))
+    {
+      return <Image source={require(`../assets/images/ppt.png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+    } else if(file.file_name.match(/\.(doc|docx)$/))
+      {
+        return <Image source={require(`../assets/images/doc (1).png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+      }else if(file.file_name.match(/\.(xls|xlsx)$/))
+        {
+          return <Image source={require(`../assets/images/xls.png`)} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+        }
+    else {
       return <MaterialIcons name="insert-drive-file" size={60} color="#2196f3" />;
     }
   };

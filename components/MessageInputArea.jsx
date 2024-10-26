@@ -78,12 +78,24 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
       let base64;
       let data;
       if(result.assets)
-       {setsharefile(result.assets[0]);
+       {//console.log(result.assets[0]);
+        setsharefile(result.assets[0]);
          base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
         setfiledata(`data:${result.assets[0].mimeType};base64,${base64}`);
-        ////(filedata);
+        const size=(result.assets[0].size / (1024 * 1024)).toFixed(4);
+        console.log(size);
+        if(size>10) 
+       { const documentDir = FileSystem.documentDirectory + result.assets[0].name;
+        await FileSystem.moveAsync({
+          from: result.assets[0].uri,
+          to: documentDir
+        });
+        const storageKey = currentuuid;
+        await AsyncStorage.setItem(storageKey, documentDir);
+        console.log(storageKey);
+      }
     }
       ////(data);
     } catch (error) {
@@ -158,8 +170,8 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         formData.append("members",member);
       });
       formData.append("color",color);
-      //setprogress(false);
-      //(JSON.stringify(formData));
+      //setprogress(false); 
+      console.log(JSON.stringify(formData));
 
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/file`, {

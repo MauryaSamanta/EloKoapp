@@ -27,6 +27,7 @@ const TagStoreDialog:React.FC<TagStoreDialogProps> = ({ open, qubeid, onClose })
         const data = await response.json();
         const sortedTags = data.tagCountsArray.sort((a:any, b:any) => b.count - a.count);
         setTagCountsArray(sortedTags);
+        //console.log(sortedTags);
       } catch (error) {
         console.error('Error fetching tags:', error);
       }
@@ -84,7 +85,7 @@ const TagStoreDialog:React.FC<TagStoreDialogProps> = ({ open, qubeid, onClose })
               </TouchableOpacity>
               <ScrollView style={styles.messagesContainer}>
                 {messages.slice(0, visibleMessagesCount).map((message, index) => (
-                  <ChatItem key={index} message={message} isOwnMessage={message.sender_id === _id} />
+                  <ChatItem key={index} message={message} isOwnMessage={message.sender_id._id === _id} />
                 ))}
               </ScrollView>
 
@@ -104,7 +105,7 @@ const TagStoreDialog:React.FC<TagStoreDialogProps> = ({ open, qubeid, onClose })
               </ScrollView>
             ) : (
               <View style={styles.emptyMessageContainer}>
-                <Text style={styles.emptyTitle}>This is where you will find tags in this zone</Text>
+                <Text style={styles.emptyTitle}>This is where you will find tags in this qube</Text>
                 <Text style={styles.emptyBody}>Tag your messages using '#' like</Text>
                 <View style={styles.tagExample}>
                   <Text style={styles.tagExampleText}>

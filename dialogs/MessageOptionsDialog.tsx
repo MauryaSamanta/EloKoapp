@@ -21,7 +21,7 @@ const MessageOptionsDialog: React.FC<MessageOptionsDialogProps> = ({
 }) => {
     const {_id}=useSelector((state:any)=>state.auth.user);
     const token=useSelector((state:any)=>state.auth.token);
-    const isown=message.sender_id===_id;
+    const isown=message.sender_id._id===_id || message.sender_id===_id;
     const [savedText,setsavedText]=useState('Save to My Library');
    
     useEffect(()=>{

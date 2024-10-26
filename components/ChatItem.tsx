@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, Pressable } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, Pressable, Button } from 'react-native';
 import { Avatar } from 'react-native-paper';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import { FontAwesome5, MaterialIcons, Entypo } from '@expo/vector-icons'; // Icons for PDF, Folder, etc.
@@ -8,7 +8,11 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Message, Member } from '@/types';
 import MessageDrawer from '@/drawers/MessageDrawer';
 import { useSelector } from 'react-redux';
-
+import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+//import Video, {VideoRef} from 'react-native-video';
+//import { useVideoPlayer, VideoView } from 'expo-video';
+import { Video, ResizeMode } from 'expo-av';
 interface ChatItemProps {
   message: Message;
   isOwnMessage: boolean;
@@ -25,6 +29,10 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
   const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt, color } = message;
   const [bgcolor,setbgcolor]=useState('transparent');
   const userlog=useSelector((state:any)=>state.auth.user);
+  const [status, setStatus] = useState<any>({});
+  const ref=useRef<any>(null)
+  let player=undefined
+  
   const showUser = async () => {
     if(!isOwnMessage)
     {try {
@@ -110,12 +118,62 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
           {file && (
             <View style={styles.fileContainer}>
               {name_file?.endsWith('.pdf') ? (
-                <>
-                  <MaterialIcons name="picture-as-pdf" size={40} color="#d32f2f" />
-                  <Text style={styles.fileName}>{name_file}</Text>
-                </>
-              ) : (
-                <Image source={{ uri: file }} style={styles.image} />
+                <View style={[{backgroundColor:'#4D4599', padding:5, borderRadius:8, marginBottom:30}]}>
+                  {/* <MaterialIcons name="picture-as-pdf" size={40} color="#d32f2f" /> */}
+                  {/* <Text style={styles.fileName}>{name_file}</Text> */}
+                  <Image source={{ uri: file.replace(/\.pdf$/, '.jpg') }} style={[styles.image,{position:'relative',height:165}]} /> 
+                  <Text style={[styles.fileName,{position:'absolute',
+                   top:170, 
+                   backgroundColor:'#4D4599', 
+                   borderBottomRightRadius:8
+                    ,paddingHorizontal:10, 
+                    textAlign:'center', 
+                    width:260,
+                    height:40, 
+                    left:-10,
+                    borderBottomLeftRadius:8,
+                    paddingTop:8,
+                    borderTopLeftRadius:-8}]}>{name_file}</Text>
+                </View>
+              ) : name_file?.endsWith('.mp4') ?(
+                <View style={[{position:'relative'}]}>
+                <Video
+                ref={ref}
+                style={styles.image}
+                source={{
+                  uri: file,
+                }}
+                //useNativeControls
+                //resizeMode={ResizeMode.CONTAIN}
+                isLooping
+                onPlaybackStatusUpdate={status => setStatus(() => status)}
+              />
+              <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          //title={status?.isPlaying ? 'Pause' : 'Play'}
+          style={[{backgroundColor:'#635acc', borderRadius:50, padding:15}]}
+          onPress={() =>
+            {if(ref && ref.current)
+              status.isPlaying ? ref.current.pauseAsync() : ref.current.playAsync()
+            }
+          }
+        >
+          <AntDesign name={status.isPlaying?"pause":"caretright"} size={24} color="#292929" />
+          </TouchableOpacity>
+      </View>
+              </View>
+
+              ):name_file?.endsWith('.doc') || name_file?.endsWith('.docx') || name_file?.endsWith('.xslx') || name_file?.endsWith('.ppt')
+              || name_file?.endsWith('.pptx')?(
+                <View style={styles.fileContainer}>
+                  {name_file?.endsWith('.doc') || name_file?.endsWith('.docx')?(<Entypo name="text-document-inverted" size={30} color="#635acc" />
+                  ):
+                   name_file?.endsWith('.xslx')?(<Entypo name="spreadsheet" size={30} color="green" />)
+                   :(<MaterialCommunityIcons name="presentation" size={30} color="red" />)}
+                   <Text style={[styles.fileName,{marginRight:20}]}>{name_file}</Text>
+                </View>
+              ):(
+                <Image source={{ uri: file }} style={styles.image} /> 
               )}
             </View>
           )}
@@ -182,14 +240,22 @@ const styles = StyleSheet.create({
   fileName: {
     marginLeft: 10,
     color: 'white',
+    fontSize:16
   },
   image: {
-    width: 200,
-    height: 200,
+    width: 250,
+    height: 250,
     borderRadius: 8,
   },
   hashtag: {
     color: '#854be3',
+  },
+  buttonContainer: {
+    position: 'absolute', // Position the button absolutely
+    top: '37%', // Center vertically
+    left: '37%', // Center horizontally
+   
+    //transform: [{ translateX: -50 }, { translateY: -50 }], // Offset by half the button size
   },
 });
 

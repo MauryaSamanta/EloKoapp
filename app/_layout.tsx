@@ -116,6 +116,7 @@ export default function RootLayout() {
       
     <Stack>
       <Stack.Screen name="index"  options={{ headerShown: false }} />
+      <Stack.Screen name="GetStarted"  options={{ headerShown: false }} />
       <Stack.Screen name="home"  options={{ headerShown: false }} />
       <Stack.Screen name="HubHome"  options={{ headerShown: false }} />
       <Stack.Screen name="Library"  options={{ headerShown: false }} />
@@ -124,6 +125,7 @@ export default function RootLayout() {
       <Stack.Screen name="HubSetting"  options={{ headerShown: false }} />
       <Stack.Screen name="Requests"  options={{ headerShown: false }} />
       <Stack.Screen name="JoinHub"  options={{ headerShown: false }} />
+      <Stack.Screen name="Qube"  options={{ headerShown: false }} />
     </Stack>
     </GestureHandlerRootView>
     </PersistGate>

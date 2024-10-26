@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Animated, PanResponder, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, Animated, PanResponder, StatusBar, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { themeSettings } from '../constants/Colors';
@@ -95,7 +95,15 @@ const HubHomeScreen: React.FC = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data=await response.json();
-          ////(data.userDetails);
+          const membersArray = data.userDetails;
+
+// Sort members array
+const sortedMembers = membersArray.sort((a:any, b:any) => {
+  if (a._id === _id) return -1; // Place the matching _id first
+  if (b._id === _id) return 1;  // Continue sorting other members
+  return a.username.localeCompare(b.username); // Sort alphabetically
+});
+
           setMembers(data.userDetails);
           ////(members);
         } catch (error) {
@@ -241,13 +249,11 @@ const fetchZones=async(selectedQube:Qube)=>{
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
       });
-      closepermissiondialog();
+      //closepermissiondialog();
     } catch (error) {
       
     }
   }
-
-  
   return (
     <View style={styles.container}>
       {/* Custom Drawer */}
@@ -265,19 +271,26 @@ const fetchZones=async(selectedQube:Qube)=>{
        {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);
        if(qube.access==='true')
         {setSelectedZone(null);
-        fetchZones(qube);setselectedQube(qube);}
+          
+        fetchZones(qube);setselectedQube(qube);
+        handleDrawerToggle();
+      }
         else
         {
-          if(qube.members?.includes(_id))
+          if(qube.members?.includes(_id) || ownerId?.includes(_id))
             {setSelectedZone(null);
-              fetchZones(qube);setselectedQube(qube);}
+              handleDrawerToggle();
+              fetchZones(qube);setselectedQube(qube);
+              
+            }
           else
-          {
+          { Vibration.vibrate();
             openpermissiondialog(qube);
+            
           }
             
         }
-        }} selectedQube={selectedQube} setselectedQube={setselectedQube} />))}
+        }} selectedQube={selectedQube} setselectedQube={setselectedQube} ownerId={ownerId}/>))}
         
         {ownerId?.includes(_id) && (<TouchableOpacity style={[{marginTop:20}]} onPress={()=>setqubediag(true)}>
         <AntDesign name="pluscircleo" size={34} color="white" />
@@ -341,7 +354,7 @@ const fetchZones=async(selectedQube:Qube)=>{
         </View>
         <CreateQubeDialog visible={qubediag} onClose={()=>setqubediag(false)} setQubes={setQubes} hub={hubId} owners={ownerId}/>
         <CreateZoneDialog visible={zonediag} onClose={()=>setzonediag(false)} setZones={setZones} qube={selectedQube}/>
-        <QubePermissionDialog visible={qubepermissiondialog} onClose={closepermissiondialog} onsendRequest={onsendRequest}/>
+       {joinqube && ( <QubePermissionDialog visible={qubepermissiondialog} onClose={closepermissiondialog} onsendRequest={onsendRequest} qube={joinqube}/>)}
       </View>
     </View>
   );

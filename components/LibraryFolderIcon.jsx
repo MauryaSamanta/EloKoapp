@@ -4,11 +4,21 @@ import { MaterialIcons } from '@expo/vector-icons';
 const FolderIcon = ({ folderFiles }) => {
   const getFileIcon = (file) => {
     // Check if the file is an image (adjust for more file types if needed)
+   
     if (file.file_url?.endsWith('.png') || file.file_url?.endsWith('.jpg') || file.file_url?.endsWith('.jpeg')) {
       return (
         <Image source={{ uri: file.file_url }} style={styles.fileImage} />
       );
-    } else {
+    } else if(file.file_name?.endsWith('.ppt') || file.file_name?.endsWith('.pptx'))
+      {
+        return <Image source={require(`../assets/images/ppt.png`)} style={styles.fileImage} />;
+      } else if(file.file_name?.endsWith('.doc') || file.file_name?.endsWith('.docx'))
+        {
+          return <Image source={require(`../assets/images/doc (1).png`)} style={styles.fileImage} />;
+        }else if(file.file_name?.endsWith('.xls') || file.file_name?.endsWith('.xlsx'))
+          {
+            return <Image source={require(`../assets/images/xls.png`)} style={styles.fileImage} />;
+          } else {
       // If not an image, return a default PDF icon
       return (
         <MaterialIcons name="picture-as-pdf" size={20} color="#e53935" />

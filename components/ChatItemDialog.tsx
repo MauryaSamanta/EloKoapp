@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, Pressable } from 'react-native';
 import { Avatar } from 'react-native-paper';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
@@ -7,7 +7,11 @@ import UserProfileDialog from '@/dialogs/UserProfileDialog';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Message, Member } from '@/types';
 import MessageDrawer from '@/drawers/MessageDrawer';
-
+import { useSelector } from 'react-redux';
+import AntDesign from '@expo/vector-icons/AntDesign';
+//import Video, {VideoRef} from 'react-native-video';
+//import { useVideoPlayer, VideoView } from 'expo-video';
+import { Video, ResizeMode } from 'expo-av';
 interface ChatItemProps {
   message: Message;
   isOwnMessage: boolean;
@@ -23,6 +27,8 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
   const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt } = message;
   const [bgcolor,setbgcolor]=useState('transparent');
   //const [drawer,setdrawer]=useState(false);
+  const [status, setStatus] = useState<any>({});
+  const ref=useRef<any>(null)
   const showUser = async () => {
     try {
       const response = await fetch(`https://surf-jtn5.onrender.com/users/${sender_id._id || sender_id}`, {
@@ -123,8 +129,42 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
                   <MaterialIcons name="picture-as-pdf" size={40} color="#d32f2f" />
                   <Text style={styles.fileName}>{name_file}</Text>
                 </>
-              ) : (
-                <Image source={{ uri: file }} style={styles.image} />
+              ) :name_file?.endsWith('.mp4') ?(
+                <View style={[{position:'relative'}]}>
+                <Video
+                ref={ref}
+                style={styles.image}
+                source={{
+                  uri: file,
+                }}
+                //useNativeControls
+                //resizeMode={ResizeMode.CONTAIN}
+                isLooping
+                onPlaybackStatusUpdate={status => setStatus(() => status)}
+              />
+              <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          //title={status?.isPlaying ? 'Pause' : 'Play'}
+          style={[{backgroundColor:'#635acc', borderRadius:50, padding:15}]}
+          onPress={() =>
+            {if(ref && ref.current)
+              status.isPlaying ? ref.current.pauseAsync() : ref.current.playAsync()
+            }
+          }
+        >
+          <AntDesign name={status.isPlaying?"pause":"caretright"} size={24} color="#292929" />
+          </TouchableOpacity>
+      </View>
+              </View>
+
+              ):name_file?.endsWith('.doc') || name_file?.endsWith('.docx') || name_file?.endsWith('.xslx') || name_file?.endsWith('.ppt')
+              || name_file?.endsWith('.pptx')?(
+                <View style={styles.fileContainer}>
+                  <Entypo name="text-document-inverted" size={30} color="#635acc" />
+                   <Text style={[styles.fileName,{marginRight:20}]}>{name_file}</Text>
+                </View>
+              ):(
+                <Image source={{ uri: file }} style={styles.image} /> 
               )}
             </View>
           )}
@@ -196,6 +236,13 @@ const styles = StyleSheet.create({
   },
   hashtag: {
     color: '#854be3',
+  },
+  buttonContainer: {
+    position: 'absolute', // Position the button absolutely
+    top: '37%', // Center vertically
+    left: '37%', // Center horizontally
+   
+    //transform: [{ translateX: -50 }, { translateY: -50 }], // Offset by half the button size
   },
 });
 

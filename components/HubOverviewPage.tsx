@@ -114,11 +114,9 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
   return (
     <View style={styles.container}>
       {/* Hub Banner */}
-      {banner_url ? (
-        <Image source={{ uri: banner_url }} style={styles.banner} />
-      ) : (
-        <View style={styles.banner} />
-      )}
+        
+        <Image source={{ uri: banner_url }} style={[styles.banner]} />
+     
        {avatar_url ? (
        
           <Image source={{ uri: avatar_url }} style={styles.avatar}  />
@@ -155,7 +153,7 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
             <Image source={require('../assets/images/plus.png')} style={{ width: 24, height: 24, marginLeft: -10 }} />
             </TouchableOpacity>
             </View>
-            {code && (<AddMemberDialog visible={addmemberdialog} code={code} onClose={closeadddialog} hubname={name} hub_avatar={avatar_url} hub_banner={banner_url}/>)}
+            {code && (<AddMemberDialog visible={addmemberdialog} code={code} onClose={closeadddialog} hubname={name} hub_avatar={avatar_url} hub_desc={description}/>)}
         </View>
         {members && (<MembersListDialog visible={memberdialog} onClose={()=>setmemberdialog(false)} 
         members={members.filter(member => !owners?.some(owner => owner._id === member._id))}
@@ -190,13 +188,15 @@ const HubOverviewPage: React.FC<HubOverviewPageProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:colors.colors.background.default
+    backgroundColor:colors.colors.background.default,
+    width: SCREEN_WIDTH
   },
   banner: {
     width: SCREEN_WIDTH,
     height: 200,
-    backgroundColor: '#eee', // Fallback color if no banner_url
-    borderRadius:10
+    //backgroundColor: '#eee', // Fallback color if no banner_url
+    borderRadius:10,
+    //backgroundColor:require('../assets/images/gallery.png')
     //position: 'relative',
   },
   detailsContainer: {
