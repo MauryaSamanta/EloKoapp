@@ -72,6 +72,8 @@ export interface Message {
   updatedAt?: Date;
   uuid?:string;
   color?:string;
+  key?:string;
+  store?:string;
 }
 
 export interface Zone {

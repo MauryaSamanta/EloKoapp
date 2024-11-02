@@ -3,6 +3,7 @@ import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, ImageBackground
 import { FontAwesome, MaterialIcons, Entypo } from '@expo/vector-icons';
 import FilePreviewDialog from './FilePreviewDialog';
 import Draggable from 'react-native-draggable';
+import Pdf from 'react-native-pdf';
 // Define the file interface
 interface File {
   _id: string;
@@ -62,7 +63,25 @@ const FolderDialog: React.FC<FolderDialogProps> = ({ file, isVisible, onClose, m
   // Function to return the appropriate icon for file types inside the folder
   const getFileIcon = (file_name: string, file_url:string) => {
     if (file_name.endsWith('.pdf')) {
-      return <Image source={{ uri: file_url.replace(/\.pdf$/, '.jpg') }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
+      //style={{ width: 60, height: 60, borderRadius: 8 }}
+      return <Pdf
+      trustAllCerts={false}
+        source={{ uri: file_url, cache:true }}
+        style={{ width: 60, height: 60, borderRadius: 8 }}
+        singlePage={true}
+        scale={2}
+        progressContainerStyle={[{backgroundColor:'#eee'}]}
+      
+        onLoadComplete={(numberOfPages, filePath) => {
+          //(`Number of pages: ${numberOfPages}`);
+        }}
+        onPageChanged={(page,numberOfPages) => {
+          //(`Current page: ${page}`);
+      }}
+        onError={(error) => {
+          //(error);
+        }}
+      />;
     } else if (file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
       return <Image source={{ uri: file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
     } else if(file_name.match(/\.(ppt|pptx)$/))

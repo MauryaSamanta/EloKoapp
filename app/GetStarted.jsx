@@ -52,10 +52,10 @@ const GetStarted = () => {
               source={require('../assets/images/EloKoMainLogo.png')} // Placeholder image URL
               style={styles.image}
             />
-            <Image
+            {/* <Image
               source={require('../assets/images/space-travel.png')} // Placeholder image URL
               style={[styles.image,{marginTop:-140}]}
-            />
+            /> */}
           </>
         )}
         {step === 1 && (

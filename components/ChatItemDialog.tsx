@@ -12,6 +12,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 //import Video, {VideoRef} from 'react-native-video';
 //import { useVideoPlayer, VideoView } from 'expo-video';
 import { Video, ResizeMode } from 'expo-av';
+import AudioPlayerChat from './AudioPlayerChat';
 interface ChatItemProps {
   message: Message;
   isOwnMessage: boolean;
@@ -172,7 +173,7 @@ const ChatItemDialog: React.FC<ChatItemProps> = ({ message, isOwnMessage }) => {
           {(text || voice) && (
             <View>
               {text && <Text style={styles.text}>{renderHighlightedMessage(text)}</Text>}
-              {voice && <Text style={styles.text}>[Audio Message]</Text>}
+              {voice && <AudioPlayerChat audioUri={voice}/>}
             </View>
           )}
         </View>

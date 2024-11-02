@@ -12,7 +12,7 @@ import {
 import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons'; // For edit icons
 import * as ImagePicker from 'expo-image-picker';
-
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const Qube = () => {
   const route = useRoute();
@@ -47,15 +47,20 @@ const Qube = () => {
       
       <View style={styles.container}>
       <View style={[{ 
-   
+    flexDirection:'row',
+    alignItems:'center',
     marginBottom:20, 
+    marginLeft:10,
     shadowColor: '#000', // Shadow color
     shadowOffset: { width: 0, height: 6 }, // Shadow offset
     shadowOpacity: 0.3, // Shadow opacity
     shadowRadius: 8, // Shadow blur radius
     elevation: 8, // Android shadow
   }]}>
-    <Text style={[{textAlign:'center', color:'white', fontSize:30, marginTop:50, marginBottom:5, fontWeight:400}]}>
+    <TouchableOpacity style={[{marginTop:70,marginRight:10}]} onPress={()=>navigation.goBack()}>
+      <Ionicons name="arrow-back-outline" size={30} color="white"/>
+      </TouchableOpacity>
+    <Text style={[{textAlign:'left', color:'white', fontSize:22, marginTop:70, marginBottom:5, fontWeight:'bold'}]}>
       Qube Settings
     </Text>
 </View>
@@ -65,7 +70,7 @@ const Qube = () => {
         {/* Hub Name */}
         <View style={styles.infoSection}>
             <View>
-          <Text style={styles.label}>Hub Name:</Text>
+          <Text style={styles.label}>Qube Name</Text>
 
           </View>
           {isEditingName ? (

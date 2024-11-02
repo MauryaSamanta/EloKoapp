@@ -13,6 +13,7 @@ import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 import LibraryFolderIcon from '@/components/LibraryFolderIcon';
 import * as ImagePicker from 'expo-image-picker';
 import { set } from 'date-fns';
+import Pdf from 'react-native-pdf';
 
 //import FilePreviewDialog from '@/dialogs/FilePreviewDialog';
 // Define the interface for the route params
@@ -184,7 +185,24 @@ const Library: React.FC = () => {
       // return  <Entypo name="folder" size={60} color={"#ff9800"} />;
       return <LibraryFolderIcon folder={file.folder}/>;
     } else if (file.file_name.endsWith('.pdf')) {
-      return <MaterialIcons name="picture-as-pdf" size={60} color="#e53935" />;
+      return <Pdf
+      trustAllCerts={false}
+        source={{ uri: file.file_url, cache:true }}
+        style={{ width: 60, height: 60, borderRadius: 8 }}
+        singlePage={true}
+        scale={2}
+        progressContainerStyle={[{backgroundColor:'#eee'}]}
+      
+        onLoadComplete={(numberOfPages, filePath) => {
+          //(`Number of pages: ${numberOfPages}`);
+        }}
+        onPageChanged={(page,numberOfPages) => {
+          //(`Current page: ${page}`);
+      }}
+        onError={(error) => {
+          //(error);
+        }}
+      />;;
     } else if (file.file_name.match(/\.(jpg|jpeg|png|gif)$/)) {
       return  <Image source={{ uri: file.file_url }} style={{ width: 60, height: 60, borderRadius: 8 }} />;
     } else if(file.file_name.match(/\.(ppt|pptx)$/))

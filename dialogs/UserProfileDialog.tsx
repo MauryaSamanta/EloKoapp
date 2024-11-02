@@ -167,6 +167,7 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
       setfriendreq(true);
     else 
       setfriendreq(false);
+    //console.log(friend);
 }
    getfriendstat();
   },[open])
@@ -262,8 +263,8 @@ const UserProfileDialog: React.FC<UserProfileDialogProps> = ({ open, onClose, us
           }]} onPress={()=>{if(!loading && !friendreq && !friend)sendRequest()}}>
             {!loading && !friendreq && !friend?(<>
             
-            <Ionicons name="person-add-sharp" size={20} color="#35fc03" style={[{marginRight:10}]} />
-        <Text style={[{alignItems:'center', color:'#35fc03', fontWeight:'bold',
+            <Ionicons name="person-add-sharp" size={20} color="#1eb355" style={[{marginRight:10}]} />
+        <Text style={[{alignItems:'center', color:'#1eb355', fontWeight:'bold',
             fontSize:15, 
           }]}>Send Friend Request</Text>
           </>):

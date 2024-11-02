@@ -24,6 +24,9 @@ import FolderUploadDialog from '@/dialogs/FolderUploadDialog';
 import { Audio } from 'expo-av';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import CryptoJS from 'crypto-js';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import TimerWithWave from './TimeWithWave';
+import AudioPlayerWithVisualizer from './AudioPlayerWithVisualizer';
 const { width } = Dimensions.get('window');
 const colors = themeSettings("dark");
 const socket = io('https://surf-jtn5.onrender.com');
@@ -47,6 +50,9 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
   const [isTyping,setisTyping]=useState(false);
   const typingTimeoutRef=useRef();
   const [recording, setRecording] = useState(false);
+  const [size,setsize]=useState();
+  const[startrec,setstartrec]=useState(false);
+  const [showrec,setshowrec]=useState(undefined);
   ////(commkey);
   const handleclosecloud=()=>{
     setcloud(false);
@@ -84,26 +90,17 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
           encoding: FileSystem.EncodingType.Base64,
         });
         setfiledata(`data:${result.assets[0].mimeType};base64,${base64}`);
-        const size=(result.assets[0].size / (1024 * 1024)).toFixed(4);
-        console.log(size);
-        if(size>10) 
-       { const documentDir = FileSystem.documentDirectory + result.assets[0].name;
-        await FileSystem.moveAsync({
-          from: result.assets[0].uri,
-          to: documentDir
-        });
-        const storageKey = currentuuid;
-        await AsyncStorage.setItem(storageKey, documentDir);
-        console.log(storageKey);
-      }
+         setsize((result.assets[0].size / (1024 * 1024)).toFixed(4));
+         
     }
       ////(data);
     } catch (error) {
       //(error);
     }
   }
+  
   const handleSend = async() => {
-    if(!sharefile || sharefile?.cloud )
+    if((!sharefile || sharefile?.cloud) &&!showrec )
     { if(files.length===0)
       { const encmess = CryptoJS.AES.encrypt(message, commkey).toString();
         let newMessage = {
@@ -132,7 +129,8 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
   
   }
     else if(sharefile && sharefile.uri && sharefile.mimeType && sharefile.name){
-      //("sending file");
+      console.log(size);
+      
       let newMessage={
         text:message,
         senderName:username,
@@ -144,12 +142,15 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         qube:qube,
         uuid:currentuuid,
          qubename:qubename,
-       hubname:hubname
+       hubname:hubname,
+       color:color
       };
       setmessages((prevmessages)=>[...prevmessages,newMessage]);
       setMessage('');
       setsharefile();
       setShowMenu(false);
+      //console.log(size);
+      
       const formData=new FormData();
       formData.append("text", message);
       formData.append("senderName", username);
@@ -163,23 +164,27 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
       formData.append("zone", zone);
       formData.append("qube",qube);
       formData.append("uuid",currentuuid);
-    
+      
       formData.append("qubename",qubename);
       formData.append("hubname",hubname);
       members.forEach((member)=>{
         formData.append("members",member);
       });
       formData.append("color",color);
+      formData.append("store",sharefile.uri);
       //setprogress(false); 
-      console.log(JSON.stringify(formData));
-
+      
+      
       try {
+        
         const result = await fetch(`https://surf-jtn5.onrender.com/message/file`, {
           method: "POST",
-          headers: { "Content-Type":"multipart/form-data" },
+         // headers: { "Content-Type":"multipart/form-data" },
           body: formData,
         });
+        console.log(result);
         const data = await result.json();
+        
         if(data)
         {
           setmessages((prevMessages) => 
@@ -202,7 +207,8 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         //filesarray:files,
         zone:zone,
         qube:qube,
-        uuid:currentuuid
+        uuid:currentuuid,
+        color:color
       };
       setmessages((prevmessages)=>[...prevmessages,newMessage]);
       setShowMenu(false);
@@ -231,7 +237,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
       try {
         const result = await fetch(`https://surf-jtn5.onrender.com/message/folder`, {
           method: "POST",
-            headers: { "Content-Type":"multipart/form-data" },
+          //  headers: { "Content-Type":"multipart/form-data" },
           body: formData,
         });
         const data=await result.json();
@@ -240,7 +246,54 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         //("error sending folder:",error);
       }
     }
-    
+
+    if(showrec){
+      let newMessage={
+        text:message,
+        senderName:username,
+        senderAvatar:avatar_url,
+        sender_id:_id,
+        voice:showrec,
+        zone:zone,
+        qube:qube,
+        uuid:currentuuid,
+        color:color
+      };
+      setmessages((prevmessages)=>[...prevmessages,newMessage]);
+      setRecording(undefined);
+      setshowrec(undefined);
+      const formData=new FormData();
+      formData.append("text", message);
+      formData.append("senderName", username);
+      formData.append("senderAvatar", avatar_url);
+      formData.append("sender_id", _id);
+      formData.append("audio", {
+        uri:showrec,
+        type: 'audio/mpeg', 
+        name: `${currentuuid}.mp3`
+      });
+      //formData.append("foldername", foldername);
+      formData.append("zone", zone);
+      formData.append("qube",qube);
+      formData.append("uuid",currentuuid);
+       formData.append("qubename",qubename);
+      formData.append("hubname",hubname);
+      members.forEach((member)=>
+      formData.append("members",member))
+      formData.append("color",color);
+      //console.log(JSON.stringify(formData));
+      try {
+        const result = await fetch(`https://surf-jtn5.onrender.com/message/audio`, {
+          method: "POST",
+          //  headers: { "Content-Type":"multipart/form-data" },
+          body: formData,
+        });
+        const data=await result.json();
+        //(data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
     
   };
   
@@ -305,7 +358,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
         });
-  
+        setstartrec(true);
         const recording = new Audio.Recording();
     await recording.prepareToRecordAsync({
       android: {
@@ -330,6 +383,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
 
     await recording.startAsync();
     setRecording(recording);
+    
         //('Recording started');
       } else {
         //('Permission to record audio not granted');
@@ -346,14 +400,17 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
   async function stopRecording() {
     //('Stopping recording..');
     setRecording(undefined);
+    setstartrec(false);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI(); // Use this URI to get the audio file
     //('Recording stopped and stored at', uri);
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: uri },
-      { shouldPlay: true }  // Automatically play the sound once loaded
-    );
-  
+   // setRecording(uri);
+    // const { sound } = await Audio.Sound.createAsync(
+    //   { uri: uri },
+    //   { shouldPlay: true }  // Automatically play the sound once loaded
+    // );
+    setshowrec(uri);
+    //console.log(showrec);
     // Optionally handle sound playback lifecycle
     sound.setOnPlaybackStatusUpdate((status) => {
       if (status.didJustFinish) {
@@ -366,15 +423,16 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
     <View style={styles.container}>
       
       {/* Attachment Icon */}
-      <TouchableOpacity onPress={toggleMenu} style={[styles.attachmentButton,
+      
+      {!startrec && !recording && !showrec && (<TouchableOpacity onPress={toggleMenu} style={[styles.attachmentButton,
         {
             transform: [{ rotate: showMenu ? '45deg' : '0deg' }]
         }]}>
       <Entypo name="plus" size={28} color='white' />
-      </TouchableOpacity>
+      </TouchableOpacity>)}
 
       {/* Text Input */}
-      {!showMenu?(<><TextInput
+      {!showMenu?(<>{!startrec && !showrec?(<TextInput
         style={[styles.input]}
         ref={inputRef}
         placeholder="Message..."
@@ -383,8 +441,8 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         multiline
         onChangeText={handletyping}
         
-      />
-      {!message.trim() && (
+      />):startrec?(<TimerWithWave/>):showrec&&(<AudioPlayerWithVisualizer audioUri={showrec}/>)}
+      {!message.trim() && !showrec && (
         <>
         <TouchableOpacity style={styles.sendButton} onPress={() => { startRecording(); }}>
          {!recording ?( <FontAwesome name="microphone" size={24} color="white" />):
@@ -392,6 +450,11 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
         </TouchableOpacity>
          
        </>
+      )}
+      {showrec && (
+        <TouchableOpacity style={styles.sendButton} onPress={()=>{setRecording(undefined); setshowrec(undefined);}}>
+          <MaterialIcons name="delete" size={26} color="#FF6347" />
+        </TouchableOpacity>
       )}
       {/* <TouchableOpacity style={styles.sendButton} onPress={() => {  }}>
       <MaterialIcons name="emoji-emotions" size={24} color="white" />
@@ -442,7 +505,7 @@ const MessageInputArea = ({zone,qube,setmessages,messagetag,members,commkey, qub
       )}
 
       {/* Send Button */}
-      <TouchableOpacity onPress={()=>{if(message.trim() || sharefile || filetoshare || foldername)handleSend();}} style={styles.sendButton}>
+      <TouchableOpacity onPress={()=>{if(message.trim() || sharefile || filetoshare || foldername || showrec)handleSend();}} style={styles.sendButton}>
         <Icon name="send" size={28} color="#fff" />
       </TouchableOpacity>
       <CloudDialog visible={cloud} onClose={handleclosecloud} handlesharefromcloud={handlesharefromcloud}/>

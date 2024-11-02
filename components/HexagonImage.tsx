@@ -1,18 +1,19 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
 import Svg, { ClipPath, Polygon, Rect, Defs,Image as SvgImage } from 'react-native-svg';
 import { themeSettings } from '../constants/Colors'; // Assuming you have a themeSettings function to get colors
 
 interface Props {
   uri?: string; // Make the uri prop optional
   style?: StyleProp<ViewStyle>;
+  onPress?:()=>void;
 }
 
 const colors = themeSettings('dark'); // Assuming 'dark' theme is being used
 
-const HexagonImage: React.FC<Props> = ({ uri,style }) => {
+const HexagonImage: React.FC<Props> = ({ uri,style,onPress }) => {
   return (
-    <View style={[styles.container,style]}>
+    <TouchableOpacity style={[styles.container,style]} onPress={onPress}>
       <Svg height="60" width="60" viewBox="0 0 100 100">
         <Defs>
           <ClipPath id="hexagonClip">
@@ -37,7 +38,7 @@ const HexagonImage: React.FC<Props> = ({ uri,style }) => {
           />
         )}
       </Svg>
-    </View>
+    </TouchableOpacity>
   );
 };
 

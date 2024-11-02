@@ -10,29 +10,46 @@ import MessageDrawer from '@/drawers/MessageDrawer';
 import { useSelector } from 'react-redux';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Pdf from 'react-native-pdf';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 //import Video, {VideoRef} from 'react-native-video';
 //import { useVideoPlayer, VideoView } from 'expo-video';
 import { Video, ResizeMode } from 'expo-av';
+import AudioPlayerWithVisualizer from './AudioPlayerWithVisualizer';
+import AudioPlayerChat from './AudioPlayerChat';
 interface ChatItemProps {
   message: Message;
   isOwnMessage: boolean;
   setdrawer:(x:boolean)=>void;
   setchat(x:Message):void;
   setmessage(x:string):void;
+  setmessages:React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const { width } = Dimensions.get('window');
 
-const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat,setmessage }) => {
+const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, setchat,setmessage, setmessages}) => {
   const [user, setUser] = useState<Member>();
   const [showCard, setShowCard] = useState(false);
-  const { sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt, color } = message;
+  let { _id,sender_id, text, voice, senderAvatar, file, senderName, name_file, name_folder, createdAt, color,key, store  } = message;
   const [bgcolor,setbgcolor]=useState('transparent');
   const userlog=useSelector((state:any)=>state.auth.user);
   const [status, setStatus] = useState<any>({});
+  const [downloading,setdownload]=useState(false);
   const ref=useRef<any>(null)
   let player=undefined
-  
+  const [fill, setFill] = useState(0);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setFill((prevFill) => (prevFill >= 100 ? 0 : prevFill + 1));
+  //   }, 50); // Adjust the interval time for speed
+
+  //   return () => clearInterval(interval);
+  // }, [downloading]);
+
   const showUser = async () => {
     if(!isOwnMessage)
     {try {
@@ -79,9 +96,37 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
   const handlepressout=()=>{
     setbgcolor('transparent');
   }
+
+  const downloadfile=async()=>{
+    const documentDir = FileSystem.documentDirectory&& FileSystem.documentDirectory + Date.now() + "_" + name_file; // Unique path
+    setdownload(true);
+    if(file && documentDir)
+    {const fileres = await FileSystem.downloadAsync(file, documentDir);
+      
+    const storageKey = key;
+    if(storageKey)
+   { const storing=await AsyncStorage.setItem(storageKey, documentDir?documentDir:'');
+    const x=await AsyncStorage.getItem(storageKey);
+    setmessages((prevMessages:Message[]) => {
+      const targetMessage = prevMessages.find((message) => message._id === _id);
+      if (targetMessage && x) {
+        targetMessage.file = x;
+      }
+      return [...prevMessages];
+    });
+  }
+  setdownload(false);
+}
+  }
   
   return (
-  <Pressable onLongPress={()=>{if(createdAt){setdrawer(true); setchat(message);}}} onPressIn={handlepressin} onPressOut={handlepressout}>
+  <Pressable onLongPress={()=>{if(createdAt){setdrawer(true); setchat(message);}}} onPressIn={handlepressin} onPressOut={handlepressout} >
+    {message.key && (<View style={[{position:'absolute',left:isOwnMessage? 10:null,right:isOwnMessage?null:10, top:'50%', borderRadius:100, 
+    borderColor:'#7D7D7D'
+      ,borderWidth:1, alignItems:'center', justifyContent:'center'
+    }]} >
+      <Ionicons name="information" size={22} color="#7D7D7D" onPress={()=>{console.log('pressed')}} />
+    </View>)}
     <View style={{ flexDirection: isOwnMessage ? 'row-reverse' : 'row', marginBottom: 20, backgroundColor:bgcolor, borderRadius:20 }}>
       <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
         <View style={[styles.header, isOwnMessage && { justifyContent: 'flex-end' }]}>
@@ -107,9 +152,10 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
 
         {user && <UserProfileDialog open={showCard} user={user} onClose={closeUser} />}
 
-        <View style={[styles.content, { marginLeft: !isOwnMessage ? 50 : 0 }]}>
+        <View style={[styles.content, { marginLeft:  !file && !isOwnMessage?50:0 }]}>
+          
           {name_folder && (
-            <View style={styles.fileContainer}>
+            <View style={[{backgroundColor:'#4D4599', padding:5, borderRadius:8, marginBottom:30}]}>
               <Entypo name="folder" size={40} color="#ff9800" />
               <Text style={[styles.fileName]}>{name_folder}</Text>
             </View>
@@ -121,19 +167,52 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
                 <View style={[{backgroundColor:'#4D4599', padding:5, borderRadius:8, marginBottom:30}]}>
                   {/* <MaterialIcons name="picture-as-pdf" size={40} color="#d32f2f" /> */}
                   {/* <Text style={styles.fileName}>{name_file}</Text> */}
-                  <Image source={{ uri: file.replace(/\.pdf$/, '.jpg') }} style={[styles.image,{position:'relative',height:165}]} /> 
+                 
+                     {file?.endsWith('.pdf')?(<Pdf
+                     trustAllCerts={false}
+                       source={{ uri: file, cache:true }}
+                       style={[styles.image,{height:165}]}
+                       singlePage={true}
+                       scale={2.3}
+                       progressContainerStyle={[{backgroundColor:'#eee'}]}
+                     
+                       onLoadComplete={(numberOfPages, filePath) => {
+                         //(`Number of pages: ${numberOfPages}`);
+                       }}
+                       onPageChanged={(page,numberOfPages) => {
+                         //(`Current page: ${page}`);
+                     }}
+                       onError={(error) => {
+                         //(error);
+                       }}
+                     />):(<View style={[{backgroundColor:'rgba(255,255,255,0.5)', height:200, width:250, justifyContent:'center', alignItems:'center'
+                      , borderRadius:8
+                     }]}>
+                        {!downloading?(<Entypo name="download" size={50} color="#292929" onPress={()=>{downloadfile();}}/>):(
+                          <AnimatedCircularProgress
+                          size={30}
+                          width={4}
+                          fill={fill}
+                          tintColor="white"
+                          //onAnimationComplete={() => //('')}
+                          backgroundColor="#4D4599"
+                          rotation={0}
+                          lineCap="round" />
+                        )}
+                     </View>)}
+                  
                   <Text style={[styles.fileName,{position:'absolute',
                    top:170, 
                    backgroundColor:'#4D4599', 
                    borderBottomRightRadius:8
                     ,paddingHorizontal:10, 
-                    textAlign:'center', 
+                    textAlign:'left', 
                     width:260,
-                    height:40, 
+                    //height:60, 
                     left:-10,
                     borderBottomLeftRadius:8,
-                    paddingTop:8,
-                    borderTopLeftRadius:-8}]}>{name_file}</Text>
+                    padding:8,
+                    borderTopLeftRadius:-8}]} >{name_file}</Text>
                 </View>
               ) : name_file?.endsWith('.mp4') ?(
                 <View style={[{position:'relative'}]}>
@@ -165,23 +244,40 @@ const ChatItem: React.FC<ChatItemProps> = ({ message, isOwnMessage, setdrawer, s
 
               ):name_file?.endsWith('.doc') || name_file?.endsWith('.docx') || name_file?.endsWith('.xslx') || name_file?.endsWith('.ppt')
               || name_file?.endsWith('.pptx')?(
-                <View style={styles.fileContainer}>
+                <View style={[{backgroundColor:'#4D4599', padding:3, borderRadius:8, flexDirection:'row', width:'100%'}]}>
+                  <View style={[{backgroundColor:'#382F66', padding:12,borderRadius:8, flexDirection:'row', width:'100%', alignItems:'center'}]}>
                   {name_file?.endsWith('.doc') || name_file?.endsWith('.docx')?(<Entypo name="text-document-inverted" size={30} color="#635acc" />
                   ):
                    name_file?.endsWith('.xslx')?(<Entypo name="spreadsheet" size={30} color="green" />)
                    :(<MaterialCommunityIcons name="presentation" size={30} color="red" />)}
                    <Text style={[styles.fileName,{marginRight:20}]}>{name_file}</Text>
+                   {!file?.endsWith('.doc') && !file?.endsWith('.docx') && !file?.endsWith('.xslx') && file?.endsWith('.ppt')
+              && file?.endsWith('.pptx') &&(
+                <>
+              {!downloading?(<Entypo name="download" size={50} color="#292929" onPress={()=>{downloadfile();}}/>):(<AnimatedCircularProgress
+                          size={30}
+                          width={4}
+                          fill={fill}
+                          tintColor="white"
+                          //onAnimationComplete={() => //('')}
+                          backgroundColor="#4D4599"
+                          rotation={0}
+                          lineCap="round" />)}
+              </>
+            )}
+                   </View>
                 </View>
               ):(
                 <Image source={{ uri: file }} style={styles.image} /> 
               )}
+              
             </View>
           )}
 
           {(text || voice) && (
-            <View>
+            <View >
               {text && <Text style={[styles.text,isOwnMessage && {textAlign:'right', paddingRight:34}]}>{renderHighlightedMessage(text)}</Text>}
-              {voice && <Text style={styles.text}>[Audio Message]</Text>}
+              {voice && <AudioPlayerChat audioUri={voice}/>}
             </View>
           )}
         </View>
@@ -226,6 +322,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flexDirection: 'column',
+    width:'100%'
   },
   text: {
     color: 'white',

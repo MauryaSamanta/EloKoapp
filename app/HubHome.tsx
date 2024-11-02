@@ -16,6 +16,7 @@ import ZoneScreen from '@/components/zone';
 import CreateQubeDialog from '@/dialogs/CreateQubeDialog';
 import CreateZoneDialog from '@/dialogs/CreateZoneDialog';
 import QubePermissionDialog from '@/dialogs/QubePermissionDialog';
+import HexagonImage from '@/components/HexagonImage';
 // Define the route parameters type
 type HubHomeRouteParams = {
   name?: string;
@@ -266,7 +267,7 @@ const fetchZones=async(selectedQube:Qube)=>{
         <View style={styles.drawercontent}>
         <View style={styles.drawercontainer}>
         <View style={styles.qubesplace}>
-        <Text style={styles.heading}>Qubes</Text>
+        <HexagonImage uri={avatar_url} style={[{marginRight:12}]} onPress={()=>{setselectedQube(undefined); setSelectedZone(null); handleDrawerToggle();}}/>
         
        {qubes.map((qube:Qube)=>(<HexagonWithText key={qube._id} qube={qube} onPress={()=>{//setselectedQube(null);
        if(qube.access==='true')
@@ -318,7 +319,7 @@ const fetchZones=async(selectedQube:Qube)=>{
       </Animated.View>
 
       {/* Main Content */}
-      <View style={styles.mainContent}>
+      <View style={styles.mainContent} >
         <View style={styles.appBar}>
           {/* Menu Button (left) */}
           <TouchableOpacity onPress={handleDrawerToggle} >
@@ -346,7 +347,7 @@ const fetchZones=async(selectedQube:Qube)=>{
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <View style={styles.content} >
          {!selectedZone?( <HubOverviewPage name={hubname} description={desc} avatar_url={avatar}
                            banner_url={banner} demonym={demon} members={members} owners={owners} hubId={hubId} ownerId={ownerId} setHubs={setHubs} setowners={setOwners}/>):(
                             <ZoneScreen selectedZone={selectedZone} selectedQube={selectedQube} hubId={hubId} members={members} hubname={name} commkey={selectedZone.symmkey}/>
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     backgroundColor:colors.colors.primary.main,
     borderRadius:10,
     height:'100%',
-    width:90
+    width:90,
   },
   zonesplace:{
     paddingTop:20,

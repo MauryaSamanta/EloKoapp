@@ -1,11 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, Animated, Easing, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, Animated, Easing, TouchableWithoutFeedback,
+   ScrollView, PermissionsAndroid, Platform } from 'react-native';
 import { Avatar, IconButton } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import UserProfileDialog from '@/dialogs/UserProfileDialog';
 import { setlogin } from './store/authSlice';
 import * as ImagePicker from 'expo-image-picker';
+import EmergencyEvac from '@/dialogs/EmergencyEvac';
+import * as FileSystem from 'expo-file-system';
+import RNFS from 'react-native-fs';
+import { shareAsync } from 'expo-sharing';
 const Account = () => {
   const user = useSelector((state: any) => state.auth.user);
   const token=useSelector((state:any)=>state.auth.token);
@@ -21,6 +26,7 @@ const Account = () => {
   const dispatch = useDispatch();
   const [colourHeight]=useState(new Animated.Value(60));
   const [selectedColor,setSelectedColor]=useState<any>(user.color || '');
+  const [emergencydiag,setemergencydiag]=useState(false);
   const colors = [
   '#1E90FF', '#2F4F4F', '#4682B4', '#556B2F', '#8B4513', 
   '#D2691E', '#B22222', '#5F9EA0', '#6A5ACD', '#CD5C5C', 
@@ -208,10 +214,97 @@ const Account = () => {
    }
     
   }
+  async function requestExternalStoragePermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Storage Permission',
+          message: 'This app needs access to your storage to save files',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  }
+
+  const onConfirm=async()=>{
+    try {
+      const response=await fetch(`https://surf-jtn5.onrender.com/file/${user._id}`,{
+        method:"POST"
+      });
+      const data=await response.json();
+      console.log(data);
+      console.log(data);
+
+    // Directory to temporarily store files
+    const tempDir = `${FileSystem.cacheDirectory}EloKoDownloads/`;
+
+    // Ensure the directory exists
+    const dirExists = await FileSystem.getInfoAsync(tempDir);
+    if (!dirExists.exists) {
+      await FileSystem.makeDirectoryAsync(tempDir, { intermediates: true });
+    }
+
+    // Download each file to the temporary directory
+    const filePaths = [];
+    for (const file of data) {
+      const { file_name, file_url } = file;
+      const filePath = `${tempDir}${file_name}`;
+      
+      // Download or move the file based on URL type
+      if(file_url && file_name)
+      {if (file_url?.startsWith('https')) {
+        // Download file from cloud URL
+        await FileSystem.downloadAsync(file_url, filePath);
+      } else if (file_url?.startsWith('file')) {
+        const fileInfo = await FileSystem.getInfoAsync(file_url);
+        if (fileInfo.exists) {
+        await FileSystem.copyAsync({ from: file_url, to: filePath });
+        }
+      }
+      filePaths.push({file_url:filePath, file_name:file_name}); }// Add to array of file paths
+    }
+    console.log(filePaths);
+    // Share all files at once
+    saveFile(filePaths)
+
+    setemergencydiag(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function saveFile(uri:any[]) {
+    if (Platform.OS === "android") {
+      const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+  
+      if (permissions.granted) {
+        for(var i=0;i<uri.length;i++)
+        {  const fileUrl = uri[i].file_url;
+           const fileInfo = await FileSystem.getInfoAsync(fileUrl);
+           if(fileInfo.exists)
+          {const base64 = await FileSystem.readAsStringAsync(uri[i].file_url, { encoding: FileSystem.EncodingType.Base64 });
+  
+        await FileSystem.StorageAccessFramework.createFileAsync(permissions.directoryUri, uri[i].file_name, '*/*')
+          .then(async (uri) => {
+            await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+          })
+          .catch(e => console.log(e));
+        }
+        }
+      } 
+    } 
+  }
   return (
     <TouchableWithoutFeedback onPress={handleOutsideClick}>
       <View style={styles.container}>
-        <Text style={[{color:'white', marginBottom:40, fontSize:30, fontWeight:'bold', marginTop:-50}]}>Account Center</Text>
+        <Text style={[{color:'white', marginBottom:40, fontSize:30, fontWeight:'bold', marginTop:-50}]}>Profile Center</Text>
         <View style={styles.avatarContainer}>
           <Avatar.Image size={120} source={{ uri: user.avatar_url }} />
           <IconButton
@@ -299,11 +392,16 @@ const Account = () => {
       onPress={() => {setSelectedColor(color); handlesavecolor(color);}} // Handle color selection
     />
   ))}
+
 </ScrollView>
           </Animated.View>
+          <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={()=>{setemergencydiag(true)}}>
+            <Text style={[styles.buttonText, styles.deleteButtonText]}>Emergency Evacuation</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.deleteButton]}>
             <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete Account</Text>
           </TouchableOpacity>
+          <EmergencyEvac visible={emergencydiag} onConfirm={onConfirm} onCancel={()=>{setemergencydiag(false)}}/>
           </View>
           {user && <UserProfileDialog open={showCard} onClose={handleCloseCard} user={user} />}
         </View>
@@ -411,11 +509,14 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   deleteButton: {
-    backgroundColor: '#e53935',
+    borderWidth:2,
+    borderColor:'#e53935'
+    //backgroundColor: '#e53935',
     //marginTop:280
   },
   deleteButtonText: {
-    color: '#fff',
+    color: '#e53935',
+    fontWeight:'bold'
   },
 });
 

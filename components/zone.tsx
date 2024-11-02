@@ -14,6 +14,7 @@ import CryptoJS from 'crypto-js';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 //import MessageDrawer from '@/drawers/MessageDrawer';
 
 // // Define TypeScript interfaces for the props
@@ -78,15 +79,30 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
             const decryptedMessages = data.map((message:any) => {
               try {
                 // Attempt to decrypt the message text
-                const decryptedText = CryptoJS.AES.decrypt(message.text, commkey).toString(CryptoJS.enc.Utf8);
-                message.text = decryptedText;
+                if(message.text)
+                {const decryptedText = CryptoJS.AES.decrypt(message.text, commkey).toString(CryptoJS.enc.Utf8);
+                message.text = decryptedText;}
             } catch (error) {
                 console.error("Error decrypting message:", error);
                 message.text = "Decryption failed"; // Fallback if decryption fails
             }
               return message;
             });
-            setmessages(decryptedMessages);
+            const manipulatedMessages = await Promise.all(
+              decryptedMessages.map(async (message:any) => {
+                if (message.key) {
+                  try {
+                   
+                    message.file = await AsyncStorage.getItem(message.key) || message.file;
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }
+                return message;
+              })
+            );
+          
+            setmessages(manipulatedMessages);
         } catch (error) {
             
         }
@@ -98,8 +114,19 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
     getmessages();
     joinZone();
   },[selectedZone]);
-  const getfromAsync=async(key:string)=>{
-    return await AsyncStorage.getItem(key);
+  const getfromAsync=async(message:any)=>{
+    const documentDir = FileSystem.documentDirectory&& FileSystem.documentDirectory + Date.now() + "_" + message.name_file; // Unique path
+    const fileres=await FileSystem.moveAsync({
+      from: message.store,
+      to: documentDir?documentDir:'',
+    });
+  
+    const storageKey = message.key;
+    const storing=await AsyncStorage.setItem(storageKey, documentDir?documentDir:'');
+    const x=await AsyncStorage.getItem(message.key);
+
+    console.log(x);
+    return x;
   }
   useEffect(()=>{
     socket.on('UserTyping', (data) => {
@@ -116,17 +143,25 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
       }
     });
 
-    socket.on('receiveMessage', (message) => {
+    socket.on('receiveMessage', async(message) => {
       if(message.text)
       message.text = CryptoJS.AES.decrypt(message.text, commkey).toString(CryptoJS.enc.Utf8);
+    let fileuri=undefined;
+      if(message.key && message.sender_id===_id){
+        fileuri=await getfromAsync(message);
+        
+      }
+      console.log(message);
+    
       setmessages((prevMessages) =>
-        (message.file || message.folder) && message.uuid
+        (message.file || message.folder) && message.uuid && message.sender_id===_id
           ? prevMessages.map((msg) =>
             msg.uuid === message.uuid
           ? {
               ...message,
               file:
-                message.key && (getfromAsync(message.key)) || message.file, // Fetch AsyncStorage if key is present
+                // message.key && ( getfromAsync(message)) || 
+                fileuri || message.file, // Fetch AsyncStorage if key is present
             }
           : msg
           
@@ -150,7 +185,10 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
 
   useEffect(() => {
     // Scroll to the bottom whenever messages change
-    scrollViewRef.current?.scrollToEnd({ animated: false });
+    //console.log(messages);
+    try{scrollViewRef.current?.scrollToEnd({ animated: false });}catch(error){
+      console.log(error);
+    }
   }, [messages]);
 
   useEffect(()=>{
@@ -182,7 +220,7 @@ const ZoneScreen: React.FC<ZoneScreenProps> = ({
           {/* Messages */}
           {messages?.map((message:Message, index) => (
             <ChatItem key={message._id} message={message} isOwnMessage={message.sender_id._id===_id || message.sender_id===_id} setdrawer={setdrawer} setchat={setchat}
-            setmessage={setmessage}/>
+            setmessage={setmessage} setmessages={setmessages}/>
           ))}
           
         </View>
