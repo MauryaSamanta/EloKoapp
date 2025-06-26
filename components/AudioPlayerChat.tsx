@@ -21,7 +21,7 @@ const AudioPlayerChat: React.FC<AudioPlayerWithSliderProps> = ({ audioUri }) => 
         console.error('Failed to load audio', error);
         return;
       }
-      setSound(audio);
+      // setSound(audio);
       setDuration(audio.getDuration()); // Get duration of the audio
     });
 
